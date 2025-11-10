@@ -118,42 +118,79 @@
       color: white;
     }
     .section {
-      margin: 30px 0;
+      margin: 20px 0;
       padding: 20px;
       background: #f7fafc;
       border-radius: 8px;
+      border-left: 4px solid #667eea;
     }
     .section h3 {
       margin-bottom: 15px;
       color: #2d3748;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-content {
+      margin-top: 15px;
     }
     .reveal-box {
       background: white;
       padding: 20px;
       border-radius: 8px;
       margin-top: 15px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid #667eea;
+    }
+    .reveal-box h4 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center;
     }
     .response-item {
       padding: 15px;
       background: white;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      border-left: 4px solid #667eea;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 2px solid #e2e8f0;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .response-label {
       font-weight: bold;
       color: #667eea;
-      margin-bottom: 5px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .votes-count {
       display: inline-block;
       background: #667eea;
       color: white;
-      padding: 4px 12px;
-      border-radius: 12px;
+      padding: 6px 14px;
+      border-radius: 16px;
       font-size: 14px;
       margin-left: 10px;
+      font-weight: 600;
+    }
+    .ia-badge {
+      background: #ed8936;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+    .human-badge {
+      background: #48bb78;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      margin-left: 8px;
     }
     .finished {
       text-align: center;
@@ -285,19 +322,35 @@
         if (state.ia) {
           document.getElementById('iaPreview').innerHTML = `
             <div class="response-item">
-              <div class="response-label">Resposta da IA gerada:</div>
-              ${state.ia}
+              <div class="response-label">
+                <span>🤖 Resposta da IA</span>
+                <span class="ia-badge">Groq LLaMA 3.1</span>
+              </div>
+              <div style="color: #4a5568; line-height: 1.6;">${state.ia}</div>
             </div>
           `;
+        } else {
+          document.getElementById('iaPreview').innerHTML = '';
         }
 
         if (state.mapping && Object.keys(state.mapping).length > 0) {
+          const mapping = state.mapping;
+          const votesCount = state.votes ? Object.keys(state.votes).length : 0;
+          
           document.getElementById('mappingDisplay').innerHTML = `
-            <div class="response-item">
-              <div class="response-label">✅ Votação preparada!</div>
-              Respostas A e B foram embaralhadas.
+            <div class="response-item" style="border: 2px solid #48bb78;">
+              <div class="response-label" style="color: #48bb78;">
+                ✅ Votação Aberta
+              </div>
+              <div style="color: #4a5568;">
+                <p style="margin-bottom: 8px;">• Resposta A: ${mapping.A === 'IA' ? '🤖 IA' : '👥 ' + mapping.A}</p>
+                <p style="margin-bottom: 8px;">• Resposta B: ${mapping.B === 'IA' ? '🤖 IA' : '👥 ' + mapping.B}</p>
+                <p style="margin-top: 12px; font-weight: 600;">Votos recebidos: ${votesCount}/12</p>
+              </div>
             </div>
           `;
+        } else {
+          document.getElementById('mappingDisplay').innerHTML = '';
         }
 
         if (state.reveal) {
@@ -312,23 +365,33 @@
       const responses = state.responses || {};
 
       let html = '<div class="reveal-box">';
-      html += '<h4 style="margin-bottom: 15px;">Revelação:</h4>';
+      html += '<h4>🎯 Resultados da Rodada</h4>';
 
       const votesA = Object.values(votes).filter(v => v === 'A').length;
       const votesB = Object.values(votes).filter(v => v === 'B').length;
+      const totalVotes = votesA + votesB;
 
       ['A', 'B'].forEach(option => {
         const source = mapping[option];
         const isIA = source === 'IA';
         const voteCount = option === 'A' ? votesA : votesB;
+        const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
         const text = isIA ? state.ia : responses[source] || '';
 
+        const badge = isIA ? '<span class="ia-badge">🤖 IA</span>' : `<span class="human-badge">👥 ${source}</span>`;
+        
         html += `<div class="response-item">`;
-        html += `<div class="response-label">Resposta ${option}: ${isIA ? '🤖 IA' : '👥 Humano (' + source + ')'}<span class="votes-count">${voteCount} votos</span></div>`;
-        html += text;
+        html += `<div class="response-label">`;
+        html += `Resposta ${option} ${badge}`;
+        html += `<span class="votes-count">${voteCount} votos (${percentage}%)</span>`;
+        html += `</div>`;
+        html += `<div style="color: #4a5568; line-height: 1.6;">${text || '<em>Sem resposta</em>'}</div>`;
         html += `</div>`;
       });
 
+      html += `<div style="text-align: center; margin-top: 15px; padding: 15px; background: #edf2f7; border-radius: 8px;">`;
+      html += `<strong style="color: #2d3748;">Total de votos: ${totalVotes}</strong>`;
+      html += `</div>`;
       html += '</div>';
       document.getElementById('revealDisplay').innerHTML = html;
     }
