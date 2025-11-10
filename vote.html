@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Júri - Conselheiro vs Máquina</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #f5576c;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+    .jury-badge {
+      background: #f5576c;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .status {
+      background: #fff5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      border-left: 4px solid #f5576c;
+    }
+    .round-info {
+      font-size: 20px;
+      font-weight: bold;
+      color: #f5576c;
+      margin-bottom: 10px;
+    }
+    .response-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 2px solid #e2e8f0;
+    }
+    .response-label {
+      font-size: 24px;
+      font-weight: bold;
+      color: #f5576c;
+      margin-bottom: 15px;
+      display: block;
+    }
+    .response-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #2d3748;
+    }
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.3s;
+    }
+    .btn-a {
+      background: #667eea;
+      color: white;
+    }
+    .btn-a:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-b {
+      background: #48bb78;
+      color: white;
+    }
+    .btn-b:hover {
+      background: #38a169;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success-message {
+      background: #48bb78;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 600;
+      display: none;
+    }
+    .success-message.show {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .waiting {
+      text-align: center;
+      color: #666;
+      padding: 40px 20px;
+    }
+    .waiting-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚖️ Painel do Júri</h1>
+    <div class="jury-badge" id="juryBadge">Júri</div>
+
+    <div id="waitingScreen" class="waiting">
+      <div class="waiting-icon">⏳</div>
+      <p>Aguardando votação...</p>
+    </div>
+
+    <div id="voteScreen" style="display: none;">
+      <div class="status">
+        <div class="round-info" id="roundInfo">Rodada P1</div>
+        <p style="color: #666;">Vote na melhor resposta</p>
+      </div>
+
+      <div class="response-card">
+        <span class="response-label">Resposta A</span>
+        <div class="response-text" id="responseA">Carregando...</div>
+        <button class="btn btn-a" onclick="vote('A')">👍 Votar em A</button>
+      </div>
+
+      <div class="response-card">
+        <span class="response-label">Resposta B</span>
+        <div class="response-text" id="responseB">Carregando...</div>
+        <button class="btn btn-b" onclick="vote('B')">👍 Votar em B</button>
+      </div>
+      
+      <div class="success-message" id="successMessage">
+        ✅ Voto registrado com sucesso!
+      </div>
+    </div>
+
+    <div id="finishedScreen" class="waiting" style="display: none;">
+      <div class="waiting-icon">🎉</div>
+      <p>Jogo finalizado! Obrigado por participar.</p>
+    </div>
+  </div>
+
+  <script>
+    const ROOM = 'default';
+    const API_BASE = window.location.origin;
+    const urlParams = new URLSearchParams(window.location.search);
+    const JURY_ID = urlParams.get('jury') || 'J1';
+    
+    let pollingInterval;
+    let currentState = {};
+    let lastVotedRound = 0;
+
+    document.getElementById('juryBadge').textContent = `Júri ${JURY_ID}`;
+
+    async function fetchState() {
+      try {
+        const res = await fetch(`${API_BASE}/api/state?room=${ROOM}`);
+        const data = await res.json();
+        currentState = data;
+        updateUI(data);
+      } catch (err) {
+        console.error('Error fetching state:', err);
+      }
+    }
+
+    function updateUI(state) {
+      const waitingScreen = document.getElementById('waitingScreen');
+      const voteScreen = document.getElementById('voteScreen');
+      const finishedScreen = document.getElementById('finishedScreen');
+      const roundInfo = document.getElementById('roundInfo');
+      const responseA = document.getElementById('responseA');
+      const responseB = document.getElementById('responseB');
+      const successMessage = document.getElementById('successMessage');
+
+      if (state.round === 0) {
+        waitingScreen.style.display = 'block';
+        voteScreen.style.display = 'none';
+        finishedScreen.style.display = 'none';
+      } else if (state.round > 5) {
+        waitingScreen.style.display = 'none';
+        voteScreen.style.display = 'none';
+        finishedScreen.style.display = 'block';
+      } else {
+        const mapping = state.mapping || {};
+        const hasMapping = Object.keys(mapping).length > 0;
+
+        if (!hasMapping) {
+          waitingScreen.style.display = 'block';
+          voteScreen.style.display = 'none';
+          finishedScreen.style.display = 'none';
+          return;
+        }
+
+        waitingScreen.style.display = 'none';
+        voteScreen.style.display = 'block';
+        finishedScreen.style.display = 'none';
+
+        roundInfo.textContent = `Rodada P${state.round} de 5`;
+
+        const textA = mapping.A === 'IA' ? state.ia : (state.responses && state.responses[mapping.A]) || '';
+        const textB = mapping.B === 'IA' ? state.ia : (state.responses && state.responses[mapping.B]) || '';
+
+        responseA.textContent = textA || 'Aguardando resposta...';
+        responseB.textContent = textB || 'Aguardando resposta...';
+
+        const hasVoted = state.votes && state.votes[JURY_ID];
+        
+        if (hasVoted && state.round !== lastVotedRound) {
+          lastVotedRound = state.round;
+        } else if (state.round !== lastVotedRound) {
+          successMessage.classList.remove('show');
+        }
+      }
+    }
+
+    async function vote(choice) {
+      if (!currentState.mapping || Object.keys(currentState.mapping).length === 0) {
+        alert('Votação não está disponível ainda');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            room: ROOM,
+            juryId: JURY_ID,
+            vote: choice
+          })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('successMessage').classList.add('show');
+          lastVotedRound = currentState.round;
+          setTimeout(() => {
+            document.getElementById('successMessage').classList.remove('show');
+          }, 3000);
+        } else {
+          alert('Erro ao registrar voto: ' + (data.error || 'Erro desconhecido'));
+        }
+      } catch (err) {
+        console.error('Error voting:', err);
+        alert('Erro ao registrar voto');
+      }
+    }
+
+    fetchState();
+    pollingInterval = setInterval(fetchState, 1500);
+  </script>
+</body>
+</html>

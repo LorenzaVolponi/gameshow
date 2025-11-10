@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grupo - Conselheiro vs Máquina</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+    .group-badge {
+      background: #667eea;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .status {
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+      border-left: 4px solid #667eea;
+    }
+    .round-info {
+      font-size: 20px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .question {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 2px solid #e2e8f0;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .question-label {
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 10px;
+      display: block;
+    }
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: all 0.3s;
+      background: #667eea;
+      color: white;
+    }
+    .btn:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success-message {
+      background: #48bb78;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 600;
+      display: none;
+    }
+    .success-message.show {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .waiting {
+      text-align: center;
+      color: #666;
+      padding: 40px 20px;
+    }
+    .waiting-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>👥 Painel do Grupo</h1>
+    <div class="group-badge" id="groupBadge">Grupo</div>
+
+    <div id="waitingScreen" class="waiting">
+      <div class="waiting-icon">⏳</div>
+      <p>Aguardando o início do jogo...</p>
+    </div>
+
+    <div id="gameScreen" style="display: none;">
+      <div class="status">
+        <div class="round-info" id="roundInfo">Rodada P1</div>
+      </div>
+
+      <div class="question">
+        <span class="question-label">📝 Pergunta:</span>
+        <div id="questionText">Carregando...</div>
+      </div>
+
+      <textarea id="responseInput" placeholder="Digite sua resposta aqui..."></textarea>
+      
+      <button class="btn" onclick="submitResponse()">📤 Enviar Resposta</button>
+      
+      <div class="success-message" id="successMessage">
+        ✅ Resposta enviada com sucesso!
+      </div>
+    </div>
+
+    <div id="finishedScreen" class="waiting" style="display: none;">
+      <div class="waiting-icon">🎉</div>
+      <p>Jogo finalizado! Obrigado por participar.</p>
+    </div>
+  </div>
+
+  <script>
+    const ROOM = 'default';
+    const API_BASE = window.location.origin;
+    const urlParams = new URLSearchParams(window.location.search);
+    const GROUP_ID = urlParams.get('group') || 'G1';
+    
+    let pollingInterval;
+    let currentState = {};
+    let lastSubmittedRound = 0;
+
+    document.getElementById('groupBadge').textContent = GROUP_ID;
+
+    async function fetchState() {
+      try {
+        const res = await fetch(`${API_BASE}/api/state?room=${ROOM}`);
+        const data = await res.json();
+        currentState = data;
+        updateUI(data);
+      } catch (err) {
+        console.error('Error fetching state:', err);
+      }
+    }
+
+    function updateUI(state) {
+      const waitingScreen = document.getElementById('waitingScreen');
+      const gameScreen = document.getElementById('gameScreen');
+      const finishedScreen = document.getElementById('finishedScreen');
+      const roundInfo = document.getElementById('roundInfo');
+      const questionText = document.getElementById('questionText');
+      const responseInput = document.getElementById('responseInput');
+      const successMessage = document.getElementById('successMessage');
+
+      if (state.round === 0) {
+        waitingScreen.style.display = 'block';
+        gameScreen.style.display = 'none';
+        finishedScreen.style.display = 'none';
+      } else if (state.round > 5) {
+        waitingScreen.style.display = 'none';
+        gameScreen.style.display = 'none';
+        finishedScreen.style.display = 'block';
+      } else {
+        waitingScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+        finishedScreen.style.display = 'none';
+
+        roundInfo.textContent = `Rodada P${state.round} de 5`;
+        questionText.textContent = state.question || 'Aguardando pergunta...';
+
+        const hasResponse = state.responses && state.responses[GROUP_ID];
+        
+        if (hasResponse && state.round !== lastSubmittedRound) {
+          responseInput.value = state.responses[GROUP_ID];
+          lastSubmittedRound = state.round;
+        } else if (state.round !== lastSubmittedRound) {
+          responseInput.value = '';
+          successMessage.classList.remove('show');
+        }
+      }
+    }
+
+    async function submitResponse() {
+      const response = document.getElementById('responseInput').value.trim();
+      
+      if (!response) {
+        alert('Digite uma resposta antes de enviar');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/group`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            room: ROOM,
+            group: GROUP_ID,
+            response: response
+          })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('successMessage').classList.add('show');
+          lastSubmittedRound = currentState.round;
+          setTimeout(() => {
+            document.getElementById('successMessage').classList.remove('show');
+          }, 3000);
+        } else {
+          alert('Erro ao enviar resposta: ' + (data.error || 'Erro desconhecido'));
+        }
+      } catch (err) {
+        console.error('Error submitting response:', err);
+        alert('Erro ao enviar resposta');
+      }
+    }
+
+    fetchState();
+    pollingInterval = setInterval(fetchState, 1500);
+  </script>
+</body>
+</html>

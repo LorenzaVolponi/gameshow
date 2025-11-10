@@ -1,0 +1,20 @@
+{
+  "name": "conselheiro-vs-maquina",
+  "version": "1.0.0",
+  "description": "Sistema de votação IA vs Humano com controle de rounds P1-P5",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-express.js",
+    "vercel": "vercel dev",
+    "deploy": "vercel"
+  },
+  "dependencies": {
+    "@vercel/kv": "^1.0.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "groq-sdk": "^0.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

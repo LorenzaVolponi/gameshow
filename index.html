@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host - Conselheiro vs Máquina</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .status {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #667eea;
+    }
+    .round-info {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .question-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      resize: vertical;
+      min-height: 80px;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #38a169;
+    }
+    .btn-danger {
+      background: #f56565;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+    .btn-warning {
+      background: #ed8936;
+      color: white;
+    }
+    .btn-warning:hover {
+      background: #dd6b20;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .groups-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .group-badge {
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 600;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    .group-badge.active {
+      background: #48bb78;
+      color: white;
+    }
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+    .section h3 {
+      margin-bottom: 15px;
+      color: #2d3748;
+    }
+    .reveal-box {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      border: 2px solid #e2e8f0;
+    }
+    .response-item {
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border-left: 4px solid #667eea;
+    }
+    .response-label {
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    .votes-count {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-left: 10px;
+    }
+    .finished {
+      text-align: center;
+      padding: 40px;
+      background: #48bb78;
+      color: white;
+      border-radius: 12px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Conselheiro vs Máquina</h1>
+    <p class="subtitle">Painel de Controle do Host</p>
+
+    <div class="status">
+      <div class="round-info" id="roundInfo">Aguardando início...</div>
+      <div id="questionDisplay"></div>
+    </div>
+
+    <div id="controlsStart">
+      <textarea id="questionInput" class="question-input" placeholder="Digite a pergunta para P1..."></textarea>
+      <button class="btn btn-primary" onclick="startGame()">▶ Iniciar Jogo (P1)</button>
+    </div>
+
+    <div id="controlsGame" style="display: none;">
+      <div class="section">
+        <h3>📝 Grupos que responderam</h3>
+        <div class="groups-list" id="groupsList">
+          <div class="group-badge">G1</div>
+          <div class="group-badge">G2</div>
+          <div class="group-badge">G3</div>
+          <div class="group-badge">G4</div>
+          <div class="group-badge">G5</div>
+          <div class="group-badge">G6</div>
+          <div class="group-badge">G7</div>
+          <div class="group-badge">G8</div>
+          <div class="group-badge">G9</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🤖 Gerar Resposta da IA</h3>
+        <button class="btn btn-warning" onclick="generateIA()" id="btnGenerateIA">⚡ Gerar IA (Groq LLaMA)</button>
+        <div id="iaPreview" style="margin-top: 15px;"></div>
+      </div>
+
+      <div class="section">
+        <h3>🔀 Preparar Votação</h3>
+        <button class="btn btn-success" onclick="prepareVoting()" id="btnPrepareVoting">🎲 Embaralhar A/B e Abrir Votação</button>
+        <div id="mappingDisplay" style="margin-top: 15px;"></div>
+      </div>
+
+      <div class="section">
+        <h3>📊 Revelar Resultados</h3>
+        <button class="btn btn-danger" onclick="revealResults()" id="btnReveal">👁 Revelar Quem é IA / Humano</button>
+        <div id="revealDisplay" style="margin-top: 15px;"></div>
+      </div>
+
+      <div class="section">
+        <h3>⏭ Próxima Rodada</h3>
+        <textarea id="nextQuestionInput" class="question-input" placeholder="Digite a pergunta para a próxima rodada..."></textarea>
+        <button class="btn btn-primary" onclick="nextRound()" id="btnNextRound">▶ Avançar para Próxima Rodada</button>
+      </div>
+    </div>
+
+    <div id="finishedScreen" style="display: none;">
+      <div class="finished">
+        🎉 Jogo Finalizado! Todas as 5 rodadas foram completadas.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ROOM = 'default';
+    const API_BASE = window.location.origin;
+    let pollingInterval;
+    let currentState = {};
+
+    async function fetchState() {
+      try {
+        const res = await fetch(`${API_BASE}/api/state?room=${ROOM}`);
+        const data = await res.json();
+        currentState = data;
+        updateUI(data);
+      } catch (err) {
+        console.error('Error fetching state:', err);
+      }
+    }
+
+    function updateUI(state) {
+      const roundInfo = document.getElementById('roundInfo');
+      const questionDisplay = document.getElementById('questionDisplay');
+
+      if (state.round === 0) {
+        roundInfo.textContent = 'Aguardando início...';
+        questionDisplay.textContent = '';
+      } else if (state.round > 5) {
+        document.getElementById('controlsGame').style.display = 'none';
+        document.getElementById('finishedScreen').style.display = 'block';
+      } else {
+        roundInfo.textContent = `Rodada P${state.round} de 5`;
+        questionDisplay.innerHTML = `<strong>Pergunta:</strong> ${state.question}`;
+        
+        const groups = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
+        const groupsList = document.getElementById('groupsList');
+        groupsList.innerHTML = groups.map(g => {
+          const hasResponse = state.responses && state.responses[g];
+          return `<div class="group-badge ${hasResponse ? 'active' : ''}">${g}</div>`;
+        }).join('');
+
+        if (state.ia) {
+          document.getElementById('iaPreview').innerHTML = `
+            <div class="response-item">
+              <div class="response-label">Resposta da IA gerada:</div>
+              ${state.ia}
+            </div>
+          `;
+        }
+
+        if (state.mapping && Object.keys(state.mapping).length > 0) {
+          document.getElementById('mappingDisplay').innerHTML = `
+            <div class="response-item">
+              <div class="response-label">✅ Votação preparada!</div>
+              Respostas A e B foram embaralhadas.
+            </div>
+          `;
+        }
+
+        if (state.reveal) {
+          displayReveal(state);
+        }
+      }
+    }
+
+    function displayReveal(state) {
+      const mapping = state.mapping || {};
+      const votes = state.votes || {};
+      const responses = state.responses || {};
+
+      let html = '<div class="reveal-box">';
+      html += '<h4 style="margin-bottom: 15px;">Revelação:</h4>';
+
+      const votesA = Object.values(votes).filter(v => v === 'A').length;
+      const votesB = Object.values(votes).filter(v => v === 'B').length;
+
+      ['A', 'B'].forEach(option => {
+        const source = mapping[option];
+        const isIA = source === 'IA';
+        const voteCount = option === 'A' ? votesA : votesB;
+        const text = isIA ? state.ia : responses[source] || '';
+
+        html += `<div class="response-item">`;
+        html += `<div class="response-label">Resposta ${option}: ${isIA ? '🤖 IA' : '👥 Humano (' + source + ')'}<span class="votes-count">${voteCount} votos</span></div>`;
+        html += text;
+        html += `</div>`;
+      });
+
+      html += '</div>';
+      document.getElementById('revealDisplay').innerHTML = html;
+    }
+
+    async function updateState(updates) {
+      try {
+        const res = await fetch(`${API_BASE}/api/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ room: ROOM, updates })
+        });
+        const data = await res.json();
+        if (data.success) {
+          await fetchState();
+        }
+      } catch (err) {
+        console.error('Error updating state:', err);
+      }
+    }
+
+    async function startGame() {
+      const question = document.getElementById('questionInput').value.trim();
+      if (!question) {
+        alert('Digite uma pergunta para P1');
+        return;
+      }
+
+      await updateState({
+        round: 1,
+        question,
+        ia: '',
+        responses: {},
+        mapping: {},
+        votes: {},
+        reveal: ''
+      });
+
+      document.getElementById('controlsStart').style.display = 'none';
+      document.getElementById('controlsGame').style.display = 'block';
+    }
+
+    async function generateIA() {
+      try {
+        const btn = document.getElementById('btnGenerateIA');
+        btn.disabled = true;
+        btn.textContent = '⏳ Gerando...';
+
+        const res = await fetch(`${API_BASE}/api/ia`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ room: ROOM, question: currentState.question })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          await fetchState();
+          alert('✅ IA gerada com sucesso!');
+        } else {
+          alert('❌ Erro: ' + (data.error || 'Erro ao gerar IA'));
+        }
+
+        btn.disabled = false;
+        btn.textContent = '⚡ Gerar IA (Groq LLaMA)';
+      } catch (err) {
+        console.error('Error generating IA:', err);
+        alert('❌ Erro ao gerar IA');
+        document.getElementById('btnGenerateIA').disabled = false;
+        document.getElementById('btnGenerateIA').textContent = '⚡ Gerar IA (Groq LLaMA)';
+      }
+    }
+
+    async function prepareVoting() {
+      const responses = currentState.responses || {};
+      const groups = Object.keys(responses).filter(k => responses[k]);
+
+      if (groups.length === 0) {
+        alert('Nenhum grupo enviou resposta ainda!');
+        return;
+      }
+
+      if (!currentState.ia) {
+        alert('Gere a resposta da IA primeiro!');
+        return;
+      }
+
+      const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+      const randomAB = Math.random() < 0.5;
+
+      const mapping = randomAB 
+        ? { A: 'IA', B: randomGroup }
+        : { A: randomGroup, B: 'IA' };
+
+      await updateState({ mapping, votes: {}, reveal: '' });
+      alert('✅ Votação preparada! Respostas A e B foram embaralhadas.');
+    }
+
+    async function revealResults() {
+      if (!currentState.mapping || Object.keys(currentState.mapping).length === 0) {
+        alert('Prepare a votação primeiro!');
+        return;
+      }
+
+      await updateState({ reveal: 'revealed' });
+      alert('👁 Resultados revelados!');
+    }
+
+    async function nextRound() {
+      const nextQuestion = document.getElementById('nextQuestionInput').value.trim();
+      
+      if (currentState.round >= 5) {
+        alert('Jogo finalizado! Todas as 5 rodadas foram completadas.');
+        return;
+      }
+
+      if (!nextQuestion) {
+        alert('Digite a pergunta para a próxima rodada');
+        return;
+      }
+
+      await updateState({
+        round: currentState.round + 1,
+        question: nextQuestion,
+        ia: '',
+        responses: {},
+        mapping: {},
+        votes: {},
+        reveal: ''
+      });
+
+      document.getElementById('nextQuestionInput').value = '';
+      alert(`✅ Avançado para P${currentState.round + 1}`);
+    }
+
+    fetchState();
+    pollingInterval = setInterval(fetchState, 1500);
+  </script>
+</body>
+</html>
