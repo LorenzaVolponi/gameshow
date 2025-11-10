@@ -1,0 +1,132 @@
+✅ Arquitetura
+
+Gere, atualize ou valide esses arquivos:
+
+index.html        → Host (controle do jogo)
+group.html        → Painel dos grupos (mobile)
+vote.html         → Painel do júri (mobile)
+api/state.js      → Retorna estado global
+api/update.js     → Atualiza estado global
+api/group.js      → Grupo envia resposta
+api/vote.js       → Júri vota
+api/ia.js         → Gera resposta da IA usando Groq
+package.json      → Dependência @vercel/kv
+vercel.json       → Define runtime Node 18
+
+✅ Regras de Implementação
+
+Nada de frameworks.
+— Apenas HTML, CSS básico, JS puro.
+— Sem React, Next.js, Vue, Svelte etc.
+
+Estado global exclusivamente via Vercel KV.
+— Chaves por sala:
+room:${room}:state
+
+Estado mínimo obrigatório:
+
+{
+  round: 1–5,
+  question: "...",
+  ia: "...",
+  responses: { G1:"", G2:"", ... },
+  mapping: { A:"IA", B:"Humano" },
+  votes: { P1:"A"/"B", ... },
+  reveal: ""
+}
+
+
+Fluxo do Host (index.html):
+
+Botão Iniciar Jogo → round=1
+
+Mostrar lista dos grupos que já enviaram
+
+Botão Gerar IA → chama /api/ia
+
+Botão Próxima Etapa → embaralha A/B
+
+Júri vota em vote.html
+
+Host aperta Reveal → mostra quem era quem
+
+Avançar para próximo round automaticamente quando o host apertar
+
+Finaliza no P5
+
+Flow do Grupo (group.html):
+
+Carrega round e pergunta via pooling a cada 1–2s
+
+Grupo digita resposta → POST /api/group
+
+Exibe “✅ Resposta enviada”
+
+Não mostra IA, não mostra outros grupos, não mostra votos.
+
+Flow do Júri (vote.html):
+
+Mostra A e B
+
+POST /api/vote com phase=Px
+
+Exibe “✅ Voto registrado”
+
+Não revela nada.
+
+IA via Groq:
+
+Modelo padrão: llama-3.1-70b-versatile
+
+Use system prompt:
+“Responda sem linguagem humana, sem expressões emocionais, sem coloquialismos. Use tópicos estratégicos e técnicos.”
+
+Sincronização:
+
+Todos os HTMLs fazem pooling via /api/state
+
+Intervalo recomendado: 1500ms
+
+Nada de WebSocket (não é suportado no Vercel)
+
+Segurança:
+
+Nunca expor GROQ_API_KEY no front.
+
+API Routes fazem o proxy.
+
+✅ Entregáveis esperados
+
+Ao usar este prompt, você deve entregar:
+
+✅ Todas as rotas serverless funcionais
+✅ HTMLs responsivos e simples
+✅ Funções de pooling confiáveis
+✅ Função clara de avançar rounds
+✅ IA integrada via Groq
+✅ CRUD completo do estado no KV
+✅ Sistema robusto sem delírio
+✅ 100% pronto para deploy no Vercel
+
+✅ Tons e Estilo do Código
+
+Minimalista
+
+Limpíssimo
+
+Zero excesso
+
+Tudo precisa funcionar de primeira
+
+Foco: estabilidade, clareza, fluxo
+
+✅ Objetivo Final
+
+Construir um sistema real, usado por conselheiros em mobile + host em TV/PC, que segue fielmente:
+
+⚡ Grupos respondem → falam → júri vota → host revela
+⚡ IA vs Humano embaralhado sem revelar origem
+⚡ P1 a P5 com controle absoluto do host
+
+Fim do prompt.
+Retorne APENAS o sistema solicitado ou suas evoluções. Nunca divague.
