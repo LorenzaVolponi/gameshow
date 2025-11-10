@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selecionar Grupo - Conselheiro vs Máquina</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .group-btn {
+      padding: 25px;
+      border: 3px solid #e2e8f0;
+      border-radius: 12px;
+      background: white;
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .group-btn:hover {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+    .group-btn:active {
+      transform: translateY(0);
+    }
+    .info {
+      background: #f7fafc;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      margin-top: 20px;
+    }
+    .info p {
+      color: #666;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>👥 Selecione seu Grupo</h1>
+    <p class="subtitle">Escolha o número do seu grupo para participar</p>
+
+    <div class="grid">
+      <button class="group-btn" onclick="selectGroup('G1')">G1</button>
+      <button class="group-btn" onclick="selectGroup('G2')">G2</button>
+      <button class="group-btn" onclick="selectGroup('G3')">G3</button>
+      <button class="group-btn" onclick="selectGroup('G4')">G4</button>
+      <button class="group-btn" onclick="selectGroup('G5')">G5</button>
+      <button class="group-btn" onclick="selectGroup('G6')">G6</button>
+      <button class="group-btn" onclick="selectGroup('G7')">G7</button>
+      <button class="group-btn" onclick="selectGroup('G8')">G8</button>
+      <button class="group-btn" onclick="selectGroup('G9')">G9</button>
+    </div>
+
+    <div class="info">
+      <p><strong>📱 Instruções:</strong></p>
+      <p>1. Toque no número do seu grupo</p>
+      <p>2. Aguarde o início do jogo</p>
+      <p>3. Responda as perguntas quando aparecerem</p>
+    </div>
+  </div>
+
+  <script>
+    function selectGroup(groupId) {
+      localStorage.setItem('conselheiro_group_id', groupId);
+      window.location.href = `group.html?group=${groupId}`;
+    }
+  </script>
+</body>
+</html>

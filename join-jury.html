@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selecionar Júri - Conselheiro vs Máquina</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #f5576c;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .jury-btn {
+      padding: 25px;
+      border: 3px solid #ffeef1;
+      border-radius: 12px;
+      background: white;
+      font-size: 24px;
+      font-weight: bold;
+      color: #f5576c;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .jury-btn:hover {
+      background: #f5576c;
+      color: white;
+      border-color: #f5576c;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.3);
+    }
+    .jury-btn:active {
+      transform: translateY(0);
+    }
+    .info {
+      background: #fff5f5;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #f5576c;
+      margin-top: 20px;
+    }
+    .info p {
+      color: #666;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚖️ Selecione sua Posição no Júri</h1>
+    <p class="subtitle">Escolha seu número para votar</p>
+
+    <div class="grid" id="juryGrid">
+      <button class="jury-btn" onclick="selectJury('J1')">J1</button>
+      <button class="jury-btn" onclick="selectJury('J2')">J2</button>
+      <button class="jury-btn" onclick="selectJury('J3')">J3</button>
+      <button class="jury-btn" onclick="selectJury('J4')">J4</button>
+      <button class="jury-btn" onclick="selectJury('J5')">J5</button>
+      <button class="jury-btn" onclick="selectJury('J6')">J6</button>
+      <button class="jury-btn" onclick="selectJury('J7')">J7</button>
+      <button class="jury-btn" onclick="selectJury('J8')">J8</button>
+      <button class="jury-btn" onclick="selectJury('J9')">J9</button>
+      <button class="jury-btn" onclick="selectJury('J10')">J10</button>
+      <button class="jury-btn" onclick="selectJury('J11')">J11</button>
+      <button class="jury-btn" onclick="selectJury('J12')">J12</button>
+    </div>
+
+    <div class="info">
+      <p><strong>⚖️ Instruções:</strong></p>
+      <p>1. Toque no seu número do júri</p>
+      <p>2. Aguarde as respostas A e B aparecerem</p>
+      <p>3. Vote na melhor resposta</p>
+    </div>
+  </div>
+
+  <script>
+    function selectJury(juryId) {
+      localStorage.setItem('conselheiro_jury_id', juryId);
+      window.location.href = `vote.html?jury=${juryId}`;
+    }
+  </script>
+</body>
+</html>

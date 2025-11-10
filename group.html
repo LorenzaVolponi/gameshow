@@ -172,12 +172,33 @@
   <script>
     const ROOM = 'default';
     const API_BASE = window.location.origin;
-    const urlParams = new URLSearchParams(window.location.search);
-    const GROUP_ID = urlParams.get('group') || 'G1';
     
     let pollingInterval;
     let currentState = {};
     let lastSubmittedRound = 0;
+
+    function getGroupID() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let groupId = urlParams.get('group');
+      
+      if (!groupId) {
+        groupId = localStorage.getItem('conselheiro_group_id');
+      }
+      
+      const validGroups = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
+      if (!groupId || !validGroups.includes(groupId)) {
+        window.location.href = 'join.html';
+        return null;
+      }
+      
+      localStorage.setItem('conselheiro_group_id', groupId);
+      return groupId;
+    }
+
+    const GROUP_ID = getGroupID();
+    if (!GROUP_ID) {
+      throw new Error('Grupo não identificado');
+    }
 
     document.getElementById('groupBadge').textContent = GROUP_ID;
 

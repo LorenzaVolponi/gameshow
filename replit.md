@@ -22,14 +22,21 @@ Sistema de votação em tempo real com três perfis:
 ```
 /
 ├── index.html           # Painel Host (TV/Desktop)
+├── join.html           # Seleção de Grupo (G1-G9)
+├── join-jury.html      # Seleção de Júri (J1-J12)
 ├── group.html          # Interface Grupos (Mobile)
 ├── vote.html           # Interface Júri (Mobile)
+├── qr.html             # QR Codes dos Grupos
+├── qr-jury.html        # QR Codes do Júri
 ├── api/
 │   ├── state.js        # GET estado global
 │   ├── update.js       # POST atualizar estado
 │   ├── group.js        # POST resposta do grupo
 │   ├── vote.js         # POST voto do júri
 │   └── ia.js           # POST gerar resposta IA
+├── lib/
+│   └── services.js     # Abstração KV/Groq (dev/prod)
+├── dev-express.js      # Servidor dev com mocks
 ├── package.json
 ├── vercel.json
 └── .gitignore
@@ -91,9 +98,21 @@ vercel dev --listen 5000
 
 ## URLs de Acesso
 
-- Host: `https://seu-dominio.vercel.app/`
-- Grupos: `https://seu-dominio.vercel.app/group.html?group=G1` (G1 a G9)
-- Júri: `https://seu-dominio.vercel.app/vote.html?jury=J1` (J1, J2, J3...)
+### Painel Principal
+- **Host**: `https://seu-dominio.vercel.app/`
+
+### Acesso via QR Code (Recomendado)
+1. Host acessa: `https://seu-dominio.vercel.app/qr.html` (Gera QR codes dos grupos)
+2. Host acessa: `https://seu-dominio.vercel.app/qr-jury.html` (Gera QR codes do júri)
+3. Participantes escaneiam o QR code
+4. Selecionam seu número (G1-G9 ou J1-J12)
+5. São automaticamente redirecionados para suas interfaces
+
+### Acesso Direto (Alternativo)
+- **Seleção Grupo**: `https://seu-dominio.vercel.app/join.html`
+- **Seleção Júri**: `https://seu-dominio.vercel.app/join-jury.html`
+- **Grupo direto**: `https://seu-dominio.vercel.app/group.html?group=G1` (G1 a G9)
+- **Júri direto**: `https://seu-dominio.vercel.app/vote.html?jury=J1` (J1 a J12)
 
 ## APIs Serverless
 
@@ -117,11 +136,20 @@ Use tópicos estratégicos e técnicos.
 
 ## Alterações Recentes
 
-- 2025-01-10: Criação inicial do sistema completo
-- Implementação de polling HTTP (1500ms)
-- Integração Groq API para geração de respostas IA
-- Sistema de embaralhamento randomizado A/B
-- Controle de 5 rodadas sequenciais P1-P5
+- 2025-11-10: **Sistema completo de QR codes**
+  - Páginas join.html e join-jury.html para seleção de grupos/júri
+  - Páginas qr.html e qr-jury.html para geração de QR codes
+  - Validação robusta com localStorage e redirecionamento automático
+  - Suporte para G1-G9 (grupos) e J1-J12 (júri)
+- 2025-11-10: **Servidor dev Express com mocks**
+  - dev-express.js para desenvolvimento local sem Vercel CLI
+  - lib/services.js abstrai KV/Groq para funcionar em dev e prod
+  - Mocks simulados de Vercel KV e Groq API
+- 2025-11-10: Criação inicial do sistema completo
+  - Implementação de polling HTTP (1500ms)
+  - Integração Groq API para geração de respostas IA
+  - Sistema de embaralhamento randomizado A/B
+  - Controle de 5 rodadas sequenciais P1-P5
 
 ## Preferências do Usuário
 

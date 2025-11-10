@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Codes - Grupos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 32px;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+    .qr-card {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      border: 3px solid #e2e8f0;
+      transition: all 0.3s;
+    }
+    .qr-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+    }
+    .qr-label {
+      font-size: 28px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+    .qr-code {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      display: inline-block;
+      margin: 10px 0;
+    }
+    .qr-url {
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+      margin-top: 10px;
+    }
+    .btn-print {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 20px auto;
+      display: block;
+    }
+    .btn-print:hover {
+      background: #5568d3;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      .btn-print {
+        display: none;
+      }
+      .container {
+        box-shadow: none;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>📱 QR Codes dos Grupos</h1>
+    <p class="subtitle">Escaneie com a câmera do celular para acessar</p>
+
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir QR Codes</button>
+
+    <div class="qr-grid" id="qrGrid"></div>
+  </div>
+
+  <script>
+    const BASE_URL = window.location.origin;
+    const groups = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
+
+    function generateQRCodes() {
+      const grid = document.getElementById('qrGrid');
+      
+      groups.forEach(group => {
+        const url = `${BASE_URL}/join.html`;
+        
+        const card = document.createElement('div');
+        card.className = 'qr-card';
+        
+        const label = document.createElement('div');
+        label.className = 'qr-label';
+        label.textContent = `Grupo ${group}`;
+        
+        const qrContainer = document.createElement('div');
+        qrContainer.className = 'qr-code';
+        qrContainer.id = `qr-${group}`;
+        
+        const urlDiv = document.createElement('div');
+        urlDiv.className = 'qr-url';
+        urlDiv.textContent = url;
+        
+        card.appendChild(label);
+        card.appendChild(qrContainer);
+        card.appendChild(urlDiv);
+        grid.appendChild(card);
+        
+        new QRCode(qrContainer, {
+          text: url,
+          width: 200,
+          height: 200,
+          colorDark: '#667eea',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      });
+    }
+
+    generateQRCodes();
+  </script>
+</body>
+</html>
