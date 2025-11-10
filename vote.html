@@ -124,6 +124,31 @@
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .sync-indicator {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(245, 87, 108, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 1000;
+      display: none;
+    }
+    .sync-indicator.active {
+      display: block;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .loading-text {
+      color: #999;
+      font-style: italic;
+    }
     .waiting {
       text-align: center;
       color: #666;
@@ -136,6 +161,8 @@
   </style>
 </head>
 <body>
+  <div class="sync-indicator" id="syncIndicator">🔄 Sincronizando...</div>
+  
   <div class="container">
     <h1>⚖️ Painel do Júri</h1>
     <div class="jury-badge" id="juryBadge">Júri</div>
@@ -154,13 +181,13 @@
       <div class="response-card">
         <span class="response-label">Resposta A</span>
         <div class="response-text" id="responseA">Carregando...</div>
-        <button class="btn btn-a" onclick="vote('A')">👍 Votar em A</button>
+        <button class="btn btn-a" onclick="vote('A', event)">👍 Votar em A</button>
       </div>
 
       <div class="response-card">
         <span class="response-label">Resposta B</span>
         <div class="response-text" id="responseB">Carregando...</div>
-        <button class="btn btn-b" onclick="vote('B')">👍 Votar em B</button>
+        <button class="btn btn-b" onclick="vote('B', event)">👍 Votar em B</button>
       </div>
       
       <div class="success-message" id="successMessage">
@@ -181,6 +208,7 @@
     let pollingInterval;
     let currentState = {};
     let lastVotedRound = 0;
+    let isFetching = false;
 
     function getJuryID() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -208,13 +236,23 @@
     document.getElementById('juryBadge').textContent = `Júri ${JURY_ID}`;
 
     async function fetchState() {
+      if (isFetching) return;
+      
+      isFetching = true;
+      const indicator = document.getElementById('syncIndicator');
       try {
+        indicator.classList.add('active');
         const res = await fetch(`${API_BASE}/api/state?room=${ROOM}`);
         const data = await res.json();
         currentState = data;
         updateUI(data);
       } catch (err) {
         console.error('Error fetching state:', err);
+      } finally {
+        isFetching = false;
+        setTimeout(() => {
+          indicator.classList.remove('active');
+        }, 300);
       }
     }
 
@@ -255,8 +293,21 @@
         const textA = mapping.A === 'IA' ? state.ia : (state.responses && state.responses[mapping.A]) || '';
         const textB = mapping.B === 'IA' ? state.ia : (state.responses && state.responses[mapping.B]) || '';
 
-        responseA.textContent = textA || 'Aguardando resposta...';
-        responseB.textContent = textB || 'Aguardando resposta...';
+        if (textA) {
+          responseA.textContent = textA;
+          responseA.classList.remove('loading-text');
+        } else {
+          responseA.textContent = 'Aguardando resposta...';
+          responseA.classList.add('loading-text');
+        }
+        
+        if (textB) {
+          responseB.textContent = textB;
+          responseB.classList.remove('loading-text');
+        } else {
+          responseB.textContent = 'Aguardando resposta...';
+          responseB.classList.add('loading-text');
+        }
 
         const hasVoted = state.votes && state.votes[JURY_ID];
         
@@ -268,42 +319,80 @@
       }
     }
 
-    async function vote(choice) {
+    async function submitVoteWithRetry(choice, retries = 3) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const res = await fetch(`${API_BASE}/api/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              room: ROOM,
+              juryId: JURY_ID,
+              vote: choice
+            })
+          });
+
+          const data = await res.json();
+          
+          if (data.success) {
+            return { success: true };
+          } else {
+            return { success: false, error: data.error };
+          }
+        } catch (err) {
+          console.error(`Attempt ${attempt} failed:`, err);
+          
+          if (attempt < retries) {
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+          } else {
+            throw err;
+          }
+        }
+      }
+    }
+
+    async function vote(choice, evt) {
       if (!currentState.mapping || Object.keys(currentState.mapping).length === 0) {
         alert('Votação não está disponível ainda');
         return;
       }
 
-      try {
-        const res = await fetch(`${API_BASE}/api/vote`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            room: ROOM,
-            juryId: JURY_ID,
-            vote: choice
-          })
-        });
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(b => b.disabled = true);
+      
+      if (evt && evt.target) {
+        evt.target.textContent = '⏳ Enviando...';
+      }
 
-        const data = await res.json();
+      try {
+        const result = await submitVoteWithRetry(choice, 3);
         
-        if (data.success) {
+        if (result.success) {
           document.getElementById('successMessage').classList.add('show');
           lastVotedRound = currentState.round;
+          
+          await fetchState();
+          
           setTimeout(() => {
             document.getElementById('successMessage').classList.remove('show');
           }, 3000);
         } else {
-          alert('Erro ao registrar voto: ' + (data.error || 'Erro desconhecido'));
+          alert('Erro ao registrar voto: ' + (result.error || 'Erro desconhecido'));
+          buttons.forEach(b => b.disabled = false);
         }
       } catch (err) {
-        console.error('Error voting:', err);
-        alert('Erro ao registrar voto');
+        console.error('All retry attempts failed:', err);
+        alert('❌ Erro ao registrar voto após 3 tentativas. Verifique sua conexão e tente novamente.');
+        buttons.forEach(b => b.disabled = false);
+      } finally {
+        if (evt && evt.target) {
+          evt.target.textContent = evt.target.classList.contains('btn-a') ? '👍 Votar em A' : '👍 Votar em B';
+        }
       }
     }
 
     fetchState();
-    pollingInterval = setInterval(fetchState, 1500);
+    pollingInterval = setInterval(fetchState, 500);
   </script>
 </body>
 </html>

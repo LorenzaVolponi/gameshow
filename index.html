@@ -243,8 +243,12 @@
     const API_BASE = window.location.origin;
     let pollingInterval;
     let currentState = {};
+    let isFetching = false;
 
     async function fetchState() {
+      if (isFetching) return;
+      
+      isFetching = true;
       try {
         const res = await fetch(`${API_BASE}/api/state?room=${ROOM}`);
         const data = await res.json();
@@ -252,6 +256,8 @@
         updateUI(data);
       } catch (err) {
         console.error('Error fetching state:', err);
+      } finally {
+        isFetching = false;
       }
     }
 
@@ -365,11 +371,11 @@
     }
 
     async function generateIA() {
-      try {
-        const btn = document.getElementById('btnGenerateIA');
-        btn.disabled = true;
-        btn.textContent = '⏳ Gerando...';
+      const btn = document.getElementById('btnGenerateIA');
+      btn.disabled = true;
+      btn.textContent = '⏳ Gerando IA (pode levar alguns segundos)...';
 
+      try {
         const res = await fetch(`${API_BASE}/api/ia`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -384,14 +390,12 @@
         } else {
           alert('❌ Erro: ' + (data.error || 'Erro ao gerar IA'));
         }
-
-        btn.disabled = false;
-        btn.textContent = '⚡ Gerar IA (Groq LLaMA)';
       } catch (err) {
         console.error('Error generating IA:', err);
-        alert('❌ Erro ao gerar IA');
-        document.getElementById('btnGenerateIA').disabled = false;
-        document.getElementById('btnGenerateIA').textContent = '⚡ Gerar IA (Groq LLaMA)';
+        alert('❌ Erro ao gerar IA. Verifique sua conexão e tente novamente.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Gerar IA (Groq LLaMA)';
       }
     }
 
@@ -409,15 +413,27 @@
         return;
       }
 
-      const randomGroup = groups[Math.floor(Math.random() * groups.length)];
-      const randomAB = Math.random() < 0.5;
+      const btn = document.getElementById('btnPrepareVoting');
+      btn.disabled = true;
+      btn.textContent = '⏳ Preparando...';
 
-      const mapping = randomAB 
-        ? { A: 'IA', B: randomGroup }
-        : { A: randomGroup, B: 'IA' };
+      try {
+        const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+        const randomAB = Math.random() < 0.5;
 
-      await updateState({ mapping, votes: {}, reveal: '' });
-      alert('✅ Votação preparada! Respostas A e B foram embaralhadas.');
+        const mapping = randomAB 
+          ? { A: 'IA', B: randomGroup }
+          : { A: randomGroup, B: 'IA' };
+
+        await updateState({ mapping, votes: {}, reveal: '' });
+        alert('✅ Votação preparada! Respostas A e B foram embaralhadas.');
+      } catch (err) {
+        console.error('Error preparing voting:', err);
+        alert('❌ Erro ao preparar votação');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🎲 Embaralhar A/B e Abrir Votação';
+      }
     }
 
     async function revealResults() {
@@ -458,7 +474,7 @@
     }
 
     fetchState();
-    pollingInterval = setInterval(fetchState, 1500);
+    pollingInterval = setInterval(fetchState, 500);
   </script>
 </body>
 </html>

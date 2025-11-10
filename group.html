@@ -123,6 +123,27 @@
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .sync-indicator {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(72, 187, 120, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      z-index: 1000;
+      display: none;
+    }
+    .sync-indicator.active {
+      display: block;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
     .waiting {
       text-align: center;
       color: #666;
@@ -135,6 +156,8 @@
   </style>
 </head>
 <body>
+  <div class="sync-indicator" id="syncIndicator">🔄 Sincronizando...</div>
+  
   <div class="container">
     <h1>👥 Painel do Grupo</h1>
     <div class="group-badge" id="groupBadge">Grupo</div>
@@ -156,7 +179,7 @@
 
       <textarea id="responseInput" placeholder="Digite sua resposta aqui..."></textarea>
       
-      <button class="btn" onclick="submitResponse()">📤 Enviar Resposta</button>
+      <button class="btn" id="submitBtn" onclick="submitResponse(event)">📤 Enviar Resposta</button>
       
       <div class="success-message" id="successMessage">
         ✅ Resposta enviada com sucesso!
@@ -176,6 +199,7 @@
     let pollingInterval;
     let currentState = {};
     let lastSubmittedRound = 0;
+    let isFetching = false;
 
     function getGroupID() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -203,13 +227,23 @@
     document.getElementById('groupBadge').textContent = GROUP_ID;
 
     async function fetchState() {
+      if (isFetching) return;
+      
+      isFetching = true;
+      const indicator = document.getElementById('syncIndicator');
       try {
+        indicator.classList.add('active');
         const res = await fetch(`${API_BASE}/api/state?room=${ROOM}`);
         const data = await res.json();
         currentState = data;
         updateUI(data);
       } catch (err) {
         console.error('Error fetching state:', err);
+      } finally {
+        isFetching = false;
+        setTimeout(() => {
+          indicator.classList.remove('active');
+        }, 300);
       }
     }
 
@@ -250,44 +284,76 @@
       }
     }
 
-    async function submitResponse() {
+    async function submitResponseWithRetry(response, retries = 3) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const res = await fetch(`${API_BASE}/api/group`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              room: ROOM,
+              group: GROUP_ID,
+              response: response
+            })
+          });
+
+          const data = await res.json();
+          
+          if (data.success) {
+            return { success: true };
+          } else {
+            return { success: false, error: data.error };
+          }
+        } catch (err) {
+          console.error(`Attempt ${attempt} failed:`, err);
+          
+          if (attempt < retries) {
+            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+          } else {
+            throw err;
+          }
+        }
+      }
+    }
+
+    async function submitResponse(evt) {
       const response = document.getElementById('responseInput').value.trim();
+      const btn = evt.target;
       
       if (!response) {
         alert('Digite uma resposta antes de enviar');
         return;
       }
 
-      try {
-        const res = await fetch(`${API_BASE}/api/group`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            room: ROOM,
-            group: GROUP_ID,
-            response: response
-          })
-        });
+      btn.disabled = true;
+      btn.textContent = '⏳ Enviando...';
 
-        const data = await res.json();
+      try {
+        const result = await submitResponseWithRetry(response, 3);
         
-        if (data.success) {
+        if (result.success) {
           document.getElementById('successMessage').classList.add('show');
           lastSubmittedRound = currentState.round;
+          
+          await fetchState();
+          
           setTimeout(() => {
             document.getElementById('successMessage').classList.remove('show');
           }, 3000);
         } else {
-          alert('Erro ao enviar resposta: ' + (data.error || 'Erro desconhecido'));
+          alert('Erro ao enviar resposta: ' + (result.error || 'Erro desconhecido'));
         }
       } catch (err) {
-        console.error('Error submitting response:', err);
-        alert('Erro ao enviar resposta');
+        console.error('All retry attempts failed:', err);
+        alert('❌ Erro ao enviar resposta após 3 tentativas. Verifique sua conexão e tente novamente.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📤 Enviar Resposta';
       }
     }
 
     fetchState();
-    pollingInterval = setInterval(fetchState, 1500);
+    pollingInterval = setInterval(fetchState, 500);
   </script>
 </body>
 </html>

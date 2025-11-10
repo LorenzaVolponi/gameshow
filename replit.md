@@ -136,6 +136,14 @@ Use tópicos estratégicos e técnicos.
 
 ## Alterações Recentes
 
+- 2025-11-10: **Otimização de sincronização em tempo real**
+  - Polling reduzido de 1500ms para 500ms para resposta mais rápida
+  - Refresh imediato após envio de respostas, votos e geração de IA
+  - Retry automático com backoff exponencial (3 tentativas: 1s, 2s, 3s)
+  - Proteção contra overlapping de requisições (flag isFetching)
+  - Indicadores visuais de sincronização em tempo real
+  - Feedback visual completo (loading states, mensagens de sucesso)
+  - Compatibilidade cross-browser (Firefox, Chrome, Safari)
 - 2025-11-10: **Sistema completo de QR codes**
   - Páginas join.html e join-jury.html para seleção de grupos/júri
   - Páginas qr.html e qr-jury.html para geração de QR codes
@@ -146,7 +154,7 @@ Use tópicos estratégicos e técnicos.
   - lib/services.js abstrai KV/Groq para funcionar em dev e prod
   - Mocks simulados de Vercel KV e Groq API
 - 2025-11-10: Criação inicial do sistema completo
-  - Implementação de polling HTTP (1500ms)
+  - Implementação de polling HTTP
   - Integração Groq API para geração de respostas IA
   - Sistema de embaralhamento randomizado A/B
   - Controle de 5 rodadas sequenciais P1-P5
