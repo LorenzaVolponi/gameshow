@@ -86,10 +86,6 @@ app.all('/api/group', async (req, res) => {
   await adaptHandler('./api/group.js', req, res);
 });
 
-app.all('/api/vote', async (req, res) => {
-  await adaptHandler('./api/vote.js', req, res);
-});
-
 app.all('/api/ia', async (req, res) => {
   await adaptHandler('./api/ia.js', req, res);
 });
@@ -98,6 +94,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Dev server running on http://0.0.0.0:${PORT}`);
   console.log(`\n📺 Host: http://localhost:${PORT}/`);
   console.log(`👥 Grupos: http://localhost:${PORT}/group.html?group=G1`);
-  console.log(`⚖️  Júri: http://localhost:${PORT}/vote.html?jury=J1\n`);
-  console.log('📝 Using mock Vercel KV and Groq API\n');
+  console.log(`\n📝 Using mock Vercel KV and Groq API\n`);
 });

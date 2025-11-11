@@ -28,11 +28,17 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Game not started' });
     }
 
-    if (!state.responses) {
-      state.responses = {};
+    if (state.currentQuestion < 0 || state.currentQuestion > 3) {
+      return res.status(400).json({ error: 'No active question' });
     }
 
-    state.responses[group] = response;
+    const questionKey = `q${state.currentQuestion}`;
+    
+    if (!state.responses[questionKey]) {
+      state.responses[questionKey] = {};
+    }
+
+    state.responses[questionKey][group] = response;
     await kv.set(key, state);
 
     return res.status(200).json({ success: true, message: '✅ Resposta enviada' });

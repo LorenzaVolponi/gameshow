@@ -16,10 +16,15 @@ export default async function handler(req, res) {
   try {
     const kv = getKV();
     const groq = getGroq();
-    const { room = 'default', question } = req.body;
+    const { room = 'default', question, context, saveToState = true } = req.body;
     
     if (!question) {
       return res.status(400).json({ error: 'Missing question' });
+    }
+
+    let userPrompt = question;
+    if (context) {
+      userPrompt = `${question}\n\nContexto: ${context}`;
     }
 
     const completion = await groq.chat.completions.create({
@@ -30,7 +35,7 @@ export default async function handler(req, res) {
         },
         {
           role: 'user',
-          content: question
+          content: userPrompt
         }
       ],
       model: 'llama-3.1-70b-versatile',
@@ -40,12 +45,22 @@ export default async function handler(req, res) {
 
     const iaResponse = completion.choices[0]?.message?.content || '';
 
-    const key = `room:${room}:state`;
-    let state = await kv.get(key);
-    
-    if (state) {
-      state.ia = iaResponse;
-      await kv.set(key, state);
+    if (saveToState) {
+      const key = `room:${room}:state`;
+      let state = await kv.get(key);
+      
+      if (!state) {
+        console.warn('State not found, cannot save IA response');
+      } else if (state.currentQuestion >= 0 && state.currentQuestion <= 3) {
+        const questionKey = `q${state.currentQuestion}`;
+        if (!state.responses[questionKey]) {
+          state.responses[questionKey] = {};
+        }
+        state.responses[questionKey].IA = iaResponse;
+        await kv.set(key, state);
+      } else {
+        console.warn('Invalid currentQuestion, cannot save IA response');
+      }
     }
 
     return res.status(200).json({ success: true, ia: iaResponse });

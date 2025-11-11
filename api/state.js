@@ -20,15 +20,22 @@ export default async function handler(req, res) {
     
     let state = await kv.get(key);
     
-    if (!state) {
+    if (!state || !state.questions || typeof state.currentQuestion === 'undefined') {
       state = {
-        round: 0,
-        question: '',
-        ia: '',
-        responses: {},
-        mapping: {},
-        votes: {},
-        reveal: ''
+        questions: ['', '', '', ''],
+        currentQuestion: -1,
+        responses: {
+          q0: {},
+          q1: {},
+          q2: {},
+          q3: {}
+        },
+        revealed: {
+          q0: false,
+          q1: false,
+          q2: false,
+          q3: false
+        }
       };
       await kv.set(key, state);
     }

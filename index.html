@@ -37,7 +37,7 @@
       margin-bottom: 20px;
       border-left: 4px solid #667eea;
     }
-    .round-info {
+    .status-info {
       font-size: 24px;
       font-weight: bold;
       color: #667eea;
@@ -49,9 +49,18 @@
       border: 2px solid #e2e8f0;
       border-radius: 8px;
       font-size: 16px;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       resize: vertical;
       min-height: 80px;
+    }
+    .char-count {
+      text-align: right;
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+    .char-count.warning {
+      color: #e53e3e;
     }
     .btn {
       padding: 12px 24px;
@@ -99,6 +108,30 @@
       cursor: not-allowed;
       transform: none;
     }
+    .section {
+      margin: 20px 0;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .section h3 {
+      margin-bottom: 15px;
+      color: #2d3748;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .question-item {
+      margin-bottom: 20px;
+    }
+    .question-label {
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 8px;
+      display: block;
+    }
     .groups-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -116,37 +149,6 @@
     .group-badge.active {
       background: #48bb78;
       color: white;
-    }
-    .section {
-      margin: 20px 0;
-      padding: 20px;
-      background: #f7fafc;
-      border-radius: 8px;
-      border-left: 4px solid #667eea;
-    }
-    .section h3 {
-      margin-bottom: 15px;
-      color: #2d3748;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .section-content {
-      margin-top: 15px;
-    }
-    .reveal-box {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-top: 15px;
-      border: 2px solid #667eea;
-    }
-    .reveal-box h4 {
-      color: #667eea;
-      margin-bottom: 20px;
-      font-size: 20px;
-      text-align: center;
     }
     .response-item {
       padding: 15px;
@@ -166,23 +168,12 @@
       align-items: center;
       gap: 8px;
     }
-    .votes-count {
-      display: inline-block;
-      background: #667eea;
-      color: white;
-      padding: 6px 14px;
-      border-radius: 16px;
-      font-size: 14px;
-      margin-left: 10px;
-      font-weight: 600;
-    }
     .ia-badge {
       background: #ed8936;
       color: white;
       padding: 4px 10px;
       border-radius: 12px;
       font-size: 13px;
-      margin-left: 8px;
     }
     .human-badge {
       background: #48bb78;
@@ -190,7 +181,19 @@
       padding: 4px 10px;
       border-radius: 12px;
       font-size: 13px;
-      margin-left: 8px;
+    }
+    .reveal-box {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      border: 2px solid #667eea;
+    }
+    .reveal-box h4 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center;
     }
     .finished {
       text-align: center;
@@ -200,6 +203,11 @@
       border-radius: 12px;
       font-size: 24px;
       font-weight: bold;
+    }
+    .navigation-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -212,24 +220,47 @@
       <a href="qr.html" target="_blank" style="text-decoration: none;">
         <button class="btn btn-primary">📱 QR Codes Grupos</button>
       </a>
-      <a href="qr-jury.html" target="_blank" style="text-decoration: none;">
-        <button class="btn btn-primary">⚖️ QR Codes Júri</button>
-      </a>
     </div>
 
     <div class="status">
-      <div class="round-info" id="roundInfo">Aguardando início...</div>
-      <div id="questionDisplay"></div>
+      <div class="status-info" id="statusInfo">Aguardando configuração...</div>
+      <div id="questionPreview"></div>
     </div>
 
-    <div id="controlsStart">
-      <div style="position: relative;">
-        <textarea id="questionInput" class="question-input" placeholder="Digite a pergunta para P1..." maxlength="500" oninput="updateCharCount('questionInput', 'charCount1')"></textarea>
-        <div id="charCount1" style="text-align: right; color: #666; font-size: 12px; margin-top: 5px;">0 / 500 caracteres</div>
+    <!-- TELA DE CONFIGURAÇÃO -->
+    <div id="controlsConfig">
+      <div class="section">
+        <h3>⚙️ Configurar 4 Perguntas do Jogo</h3>
+        
+        <div class="question-item">
+          <label class="question-label">Pergunta 1:</label>
+          <textarea id="q1Input" class="question-input" placeholder="Digite a primeira pergunta..." maxlength="500" oninput="updateCharCount('q1Input', 'charCount1')"></textarea>
+          <div id="charCount1" class="char-count">0 / 500 caracteres</div>
+        </div>
+
+        <div class="question-item">
+          <label class="question-label">Pergunta 2:</label>
+          <textarea id="q2Input" class="question-input" placeholder="Digite a segunda pergunta..." maxlength="500" oninput="updateCharCount('q2Input', 'charCount2')"></textarea>
+          <div id="charCount2" class="char-count">0 / 500 caracteres</div>
+        </div>
+
+        <div class="question-item">
+          <label class="question-label">Pergunta 3:</label>
+          <textarea id="q3Input" class="question-input" placeholder="Digite a terceira pergunta..." maxlength="500" oninput="updateCharCount('q3Input', 'charCount3')"></textarea>
+          <div id="charCount3" class="char-count">0 / 500 caracteres</div>
+        </div>
+
+        <div class="question-item">
+          <label class="question-label">Pergunta 4:</label>
+          <textarea id="q4Input" class="question-input" placeholder="Digite a quarta pergunta..." maxlength="500" oninput="updateCharCount('q4Input', 'charCount4')"></textarea>
+          <div id="charCount4" class="char-count">0 / 500 caracteres</div>
+        </div>
+
+        <button class="btn btn-success" onclick="saveAndStartGame()">✅ Salvar e Iniciar Jogo</button>
       </div>
-      <button class="btn btn-primary" onclick="startGame()">▶ Iniciar Jogo (P1)</button>
     </div>
 
+    <!-- TELA DE JOGO -->
     <div id="controlsGame" style="display: none;">
       <div class="section">
         <h3>📝 Grupos que responderam</h3>
@@ -247,7 +278,7 @@
       </div>
 
       <div class="section">
-        <h3>📋 Respostas da Rodada</h3>
+        <h3>📋 Respostas da Pergunta</h3>
         <div id="responsesDisplay" style="margin-bottom: 15px;">
           <div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>
         </div>
@@ -255,30 +286,24 @@
       </div>
 
       <div class="section">
-        <h3>🔀 Preparar Votação</h3>
-        <button class="btn btn-success" onclick="prepareVoting()" id="btnPrepareVoting">🎲 Embaralhar A/B e Abrir Votação</button>
-        <div id="mappingDisplay" style="margin-top: 15px;"></div>
-      </div>
-
-      <div class="section">
-        <h3>📊 Revelar Resultados</h3>
-        <button class="btn btn-danger" onclick="revealResults()" id="btnReveal">👁 Revelar Quem é IA / Humano</button>
+        <h3>👁️ Revelar Resultados</h3>
+        <button class="btn btn-danger" onclick="revealCurrent()" id="btnReveal">Revelar IA vs Humano</button>
         <div id="revealDisplay" style="margin-top: 15px;"></div>
       </div>
 
       <div class="section">
-        <h3>⏭ Próxima Rodada</h3>
-        <div style="position: relative;">
-          <textarea id="nextQuestionInput" class="question-input" placeholder="Digite a pergunta para a próxima rodada..." maxlength="500" oninput="updateCharCount('nextQuestionInput', 'charCount2')"></textarea>
-          <div id="charCount2" style="text-align: right; color: #666; font-size: 12px; margin-top: 5px;">0 / 500 caracteres</div>
+        <h3>🔄 Navegação</h3>
+        <div class="navigation-buttons">
+          <button class="btn btn-primary" onclick="previousQuestion()" id="btnPrevious">◀ Pergunta Anterior</button>
+          <button class="btn btn-primary" onclick="nextQuestion()" id="btnNext">Próxima Pergunta ▶</button>
         </div>
-        <button class="btn btn-primary" onclick="nextRound()" id="btnNextRound">▶ Avançar para Próxima Rodada</button>
       </div>
     </div>
 
+    <!-- TELA FINAL -->
     <div id="finishedScreen" style="display: none;">
       <div class="finished">
-        🎉 Jogo Finalizado! Todas as 5 rodadas foram completadas.
+        🎉 Jogo Finalizado! Todas as 4 perguntas foram completadas.
       </div>
     </div>
   </div>
@@ -296,7 +321,7 @@
       const length = textarea.value.length;
       const maxLength = textarea.maxLength;
       counter.textContent = `${length} / ${maxLength} caracteres`;
-      counter.style.color = length > maxLength * 0.9 ? '#e53e3e' : '#666';
+      counter.className = length > maxLength * 0.9 ? 'char-count warning' : 'char-count';
     }
 
     async function fetchState() {
@@ -316,135 +341,135 @@
     }
 
     function updateUI(state) {
-      const roundInfo = document.getElementById('roundInfo');
-      const questionDisplay = document.getElementById('questionDisplay');
-      const controlsStart = document.getElementById('controlsStart');
+      const statusInfo = document.getElementById('statusInfo');
+      const questionPreview = document.getElementById('questionPreview');
+      const controlsConfig = document.getElementById('controlsConfig');
       const controlsGame = document.getElementById('controlsGame');
       const finishedScreen = document.getElementById('finishedScreen');
 
-      if (state.round === 0) {
-        roundInfo.textContent = 'Aguardando início...';
-        questionDisplay.textContent = '';
-        controlsStart.style.display = 'block';
+      if (state.currentQuestion === -1) {
+        statusInfo.textContent = 'Aguardando configuração...';
+        questionPreview.textContent = '';
+        controlsConfig.style.display = 'block';
         controlsGame.style.display = 'none';
         finishedScreen.style.display = 'none';
-      } else if (state.round > 5) {
-        controlsStart.style.display = 'none';
+      } else if (state.currentQuestion > 3) {
+        controlsConfig.style.display = 'none';
         controlsGame.style.display = 'none';
         finishedScreen.style.display = 'block';
       } else {
-        roundInfo.textContent = `Rodada P${state.round} de 5`;
-        questionDisplay.innerHTML = `<strong>Pergunta:</strong> ${state.question}`;
-        controlsStart.style.display = 'none';
+        const questionNum = state.currentQuestion + 1;
+        statusInfo.textContent = `Pergunta ${questionNum} de 4`;
+        const currentQuestion = state.questions[state.currentQuestion] || '';
+        questionPreview.innerHTML = `<strong>Pergunta:</strong> ${currentQuestion}`;
+        controlsConfig.style.display = 'none';
         controlsGame.style.display = 'block';
         finishedScreen.style.display = 'none';
-        
-        const groups = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
-        const groupsList = document.getElementById('groupsList');
-        groupsList.innerHTML = groups.map(g => {
-          const hasResponse = state.responses && state.responses[g];
-          return `<div class="group-badge ${hasResponse ? 'active' : ''}">${g}</div>`;
-        }).join('');
 
-        let responsesHtml = '';
-        const hasResponses = state.responses && Object.keys(state.responses).length > 0;
-        const hasIA = state.ia && state.ia.length > 0;
-        
-        if (hasResponses || hasIA) {
-          if (hasResponses) {
-            responsesHtml += '<div style="margin-bottom: 15px;"><strong style="color: #48bb78;">👥 Respostas dos Grupos:</strong></div>';
-            Object.entries(state.responses).forEach(([group, response]) => {
-              responsesHtml += `
-                <div class="response-item" style="margin-bottom: 10px;">
+        updateGroupsList(state);
+        updateResponsesDisplay(state);
+        updateRevealDisplay(state);
+        updateNavigationButtons(state);
+      }
+    }
+
+    function updateGroupsList(state) {
+      const groups = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
+      const groupsList = document.getElementById('groupsList');
+      const questionKey = `q${state.currentQuestion}`;
+      const responses = state.responses[questionKey] || {};
+
+      groupsList.innerHTML = groups.map(g => {
+        const hasResponse = responses[g];
+        return `<div class="group-badge ${hasResponse ? 'active' : ''}">${g}</div>`;
+      }).join('');
+    }
+
+    function updateResponsesDisplay(state) {
+      const questionKey = `q${state.currentQuestion}`;
+      const responses = state.responses[questionKey] || {};
+      const hasResponses = Object.keys(responses).filter(k => k !== 'IA').length > 0;
+      const hasIA = responses.IA;
+      
+      let html = '';
+
+      if (hasResponses || hasIA) {
+        if (hasResponses) {
+          html += '<div style="margin-bottom: 15px;"><strong style="color: #48bb78;">👥 Respostas dos Grupos:</strong></div>';
+          Object.entries(responses).forEach(([key, response]) => {
+            if (key !== 'IA') {
+              html += `
+                <div class="response-item">
                   <div class="response-label">
-                    <span>${group}</span>
+                    <span>${key}</span>
                     <span class="human-badge">Humano</span>
                   </div>
                   <div style="color: #4a5568; line-height: 1.6;">${response}</div>
                 </div>
               `;
-            });
-          }
-          
-          if (hasIA) {
-            responsesHtml += '<div style="margin: 20px 0 10px 0;"><strong style="color: #ed8936;">🤖 Resposta da IA:</strong></div>';
-            responsesHtml += `
-              <div class="response-item">
-                <div class="response-label">
-                  <span>Groq LLaMA 3.1</span>
-                  <span class="ia-badge">IA</span>
-                </div>
-                <div style="color: #4a5568; line-height: 1.6;">${state.ia}</div>
-              </div>
-            `;
-          }
-          
-          document.getElementById('responsesDisplay').innerHTML = responsesHtml;
-        } else {
-          document.getElementById('responsesDisplay').innerHTML = '<div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>';
+            }
+          });
         }
-
-        if (state.mapping && Object.keys(state.mapping).length > 0) {
-          const mapping = state.mapping;
-          const votesCount = state.votes ? Object.keys(state.votes).length : 0;
-          
-          document.getElementById('mappingDisplay').innerHTML = `
-            <div class="response-item" style="border: 2px solid #48bb78;">
-              <div class="response-label" style="color: #48bb78;">
-                ✅ Votação Aberta
+        
+        if (hasIA) {
+          html += '<div style="margin: 20px 0 10px 0;"><strong style="color: #ed8936;">🤖 Resposta da IA:</strong></div>';
+          html += `
+            <div class="response-item">
+              <div class="response-label">
+                <span>Groq LLaMA 3.1</span>
+                <span class="ia-badge">IA</span>
               </div>
-              <div style="color: #4a5568;">
-                <p style="margin-bottom: 8px;">• Resposta A: ${mapping.A === 'IA' ? '🤖 IA' : '👥 ' + mapping.A}</p>
-                <p style="margin-bottom: 8px;">• Resposta B: ${mapping.B === 'IA' ? '🤖 IA' : '👥 ' + mapping.B}</p>
-                <p style="margin-top: 12px; font-weight: 600;">Votos recebidos: ${votesCount}/12</p>
-              </div>
+              <div style="color: #4a5568; line-height: 1.6;">${responses.IA}</div>
             </div>
           `;
-        } else {
-          document.getElementById('mappingDisplay').innerHTML = '';
         }
-
-        if (state.reveal) {
-          displayReveal(state);
-        }
+        
+        document.getElementById('responsesDisplay').innerHTML = html;
+      } else {
+        document.getElementById('responsesDisplay').innerHTML = '<div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>';
       }
     }
 
-    function displayReveal(state) {
-      const mapping = state.mapping || {};
-      const votes = state.votes || {};
-      const responses = state.responses || {};
+    function updateRevealDisplay(state) {
+      const questionKey = `q${state.currentQuestion}`;
+      const revealed = state.revealed[questionKey];
+      
+      if (!revealed) {
+        document.getElementById('revealDisplay').innerHTML = '';
+        return;
+      }
 
+      const responses = state.responses[questionKey] || {};
       let html = '<div class="reveal-box">';
-      html += '<h4>🎯 Resultados da Rodada</h4>';
+      html += '<h4>🎯 Resultados da Pergunta</h4>';
 
-      const votesA = Object.values(votes).filter(v => v === 'A').length;
-      const votesB = Object.values(votes).filter(v => v === 'B').length;
-      const totalVotes = votesA + votesB;
-
-      ['A', 'B'].forEach(option => {
-        const source = mapping[option];
-        const isIA = source === 'IA';
-        const voteCount = option === 'A' ? votesA : votesB;
-        const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
-        const text = isIA ? state.ia : responses[source] || '';
-
-        const badge = isIA ? '<span class="ia-badge">🤖 IA</span>' : `<span class="human-badge">👥 ${source}</span>`;
+      Object.entries(responses).forEach(([key, response]) => {
+        const isIA = key === 'IA';
+        const badge = isIA ? '<span class="ia-badge">🤖 IA</span>' : `<span class="human-badge">👥 ${key}</span>`;
         
         html += `<div class="response-item">`;
-        html += `<div class="response-label">`;
-        html += `Resposta ${option} ${badge}`;
-        html += `<span class="votes-count">${voteCount} votos (${percentage}%)</span>`;
-        html += `</div>`;
-        html += `<div style="color: #4a5568; line-height: 1.6;">${text || '<em>Sem resposta</em>'}</div>`;
+        html += `<div class="response-label">${badge}</div>`;
+        html += `<div style="color: #4a5568; line-height: 1.6;">${response || '<em>Sem resposta</em>'}</div>`;
         html += `</div>`;
       });
 
-      html += `<div style="text-align: center; margin-top: 15px; padding: 15px; background: #edf2f7; border-radius: 8px;">`;
-      html += `<strong style="color: #2d3748;">Total de votos: ${totalVotes}</strong>`;
-      html += `</div>`;
       html += '</div>';
       document.getElementById('revealDisplay').innerHTML = html;
+    }
+
+    function updateNavigationButtons(state) {
+      const btnPrevious = document.getElementById('btnPrevious');
+      const btnNext = document.getElementById('btnNext');
+
+      btnPrevious.disabled = state.currentQuestion === 0;
+
+      if (state.currentQuestion === 3) {
+        btnNext.textContent = 'Finalizar Jogo ✓';
+        btnNext.disabled = false;
+      } else {
+        btnNext.textContent = 'Próxima Pergunta ▶';
+        btnNext.disabled = false;
+      }
     }
 
     async function updateState(updates) {
@@ -463,25 +488,63 @@
       }
     }
 
-    async function startGame() {
-      const question = document.getElementById('questionInput').value.trim();
-      if (!question) {
-        alert('Digite uma pergunta para P1');
+    async function saveAndStartGame() {
+      const q1 = document.getElementById('q1Input').value.trim();
+      const q2 = document.getElementById('q2Input').value.trim();
+      const q3 = document.getElementById('q3Input').value.trim();
+      const q4 = document.getElementById('q4Input').value.trim();
+
+      if (!q1 || !q2 || !q3 || !q4) {
+        alert('Por favor, preencha todas as 4 perguntas antes de iniciar o jogo.');
         return;
       }
 
-      await updateState({
-        round: 1,
-        question,
-        ia: '',
-        responses: {},
-        mapping: {},
-        votes: {},
-        reveal: ''
-      });
+      try {
+        const res = await fetch(`${API_BASE}/api/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            room: ROOM, 
+            updates: {
+              questions: [q1, q2, q3, q4],
+              currentQuestion: 0
+            }
+          })
+        });
 
-      document.getElementById('controlsStart').style.display = 'none';
-      document.getElementById('controlsGame').style.display = 'block';
+        const data = await res.json();
+        if (data.success) {
+          const clearRes = await fetch(`${API_BASE}/api/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              room: ROOM, 
+              updates: {
+                responses: {
+                  q0: {},
+                  q1: {},
+                  q2: {},
+                  q3: {}
+                },
+                revealed: {
+                  q0: false,
+                  q1: false,
+                  q2: false,
+                  q3: false
+                }
+              }
+            })
+          });
+
+          if (clearRes.ok) {
+            await fetchState();
+            alert('✅ Jogo iniciado! Aguarde as respostas dos grupos.');
+          }
+        }
+      } catch (err) {
+        console.error('Error starting game:', err);
+        alert('❌ Erro ao iniciar jogo. Tente novamente.');
+      }
     }
 
     async function generateIA() {
@@ -490,10 +553,15 @@
       btn.textContent = '⏳ Gerando IA (pode levar alguns segundos)...';
 
       try {
+        const currentQuestion = currentState.questions[currentState.currentQuestion];
         const res = await fetch(`${API_BASE}/api/ia`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ room: ROOM, question: currentState.question })
+          body: JSON.stringify({ 
+            room: ROOM, 
+            question: currentQuestion,
+            saveToState: true
+          })
         });
 
         const data = await res.json();
@@ -513,78 +581,43 @@
       }
     }
 
-    async function prepareVoting() {
-      const responses = currentState.responses || {};
-      const groups = Object.keys(responses).filter(k => responses[k]);
-
-      if (groups.length === 0) {
-        alert('Nenhum grupo enviou resposta ainda!');
-        return;
-      }
-
-      if (!currentState.ia) {
-        alert('Gere a resposta da IA primeiro!');
-        return;
-      }
-
-      const btn = document.getElementById('btnPrepareVoting');
-      btn.disabled = true;
-      btn.textContent = '⏳ Preparando...';
-
-      try {
-        const randomGroup = groups[Math.floor(Math.random() * groups.length)];
-        const randomAB = Math.random() < 0.5;
-
-        const mapping = randomAB 
-          ? { A: 'IA', B: randomGroup }
-          : { A: randomGroup, B: 'IA' };
-
-        await updateState({ mapping, votes: {}, reveal: '' });
-        alert('✅ Votação preparada! Respostas A e B foram embaralhadas.');
-      } catch (err) {
-        console.error('Error preparing voting:', err);
-        alert('❌ Erro ao preparar votação');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '🎲 Embaralhar A/B e Abrir Votação';
-      }
-    }
-
-    async function revealResults() {
-      if (!currentState.mapping || Object.keys(currentState.mapping).length === 0) {
-        alert('Prepare a votação primeiro!');
-        return;
-      }
-
-      await updateState({ reveal: 'revealed' });
-      alert('👁 Resultados revelados!');
-    }
-
-    async function nextRound() {
-      const nextQuestion = document.getElementById('nextQuestionInput').value.trim();
+    async function revealCurrent() {
+      const questionKey = `q${currentState.currentQuestion}`;
+      const responses = currentState.responses[questionKey] || {};
       
-      if (currentState.round >= 5) {
-        alert('Jogo finalizado! Todas as 5 rodadas foram completadas.');
-        return;
-      }
-
-      if (!nextQuestion) {
-        alert('Digite a pergunta para a próxima rodada');
+      if (Object.keys(responses).length === 0) {
+        alert('Não há respostas para revelar ainda!');
         return;
       }
 
       await updateState({
-        round: currentState.round + 1,
-        question: nextQuestion,
-        ia: '',
-        responses: {},
-        mapping: {},
-        votes: {},
-        reveal: ''
+        revealed: {
+          ...currentState.revealed,
+          [questionKey]: true
+        }
       });
 
-      document.getElementById('nextQuestionInput').value = '';
-      alert(`✅ Avançado para P${currentState.round + 1}`);
+      alert('👁 Resultados revelados!');
+    }
+
+    async function nextQuestion() {
+      if (currentState.currentQuestion >= 3) {
+        await updateState({ currentQuestion: 4 });
+        alert('🎉 Jogo finalizado!');
+        return;
+      }
+
+      await updateState({ 
+        currentQuestion: currentState.currentQuestion + 1 
+      });
+    }
+
+    async function previousQuestion() {
+      if (currentState.currentQuestion > 0) {
+        await updateState({ 
+          currentQuestion: currentState.currentQuestion - 1 
+        });
+      }
     }
 
     fetchState();

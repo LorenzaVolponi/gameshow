@@ -26,17 +26,46 @@ export default async function handler(req, res) {
     
     if (!state) {
       state = {
-        round: 0,
-        question: '',
-        ia: '',
-        responses: {},
-        mapping: {},
-        votes: {},
-        reveal: ''
+        questions: ['', '', '', ''],
+        currentQuestion: -1,
+        responses: {
+          q0: {},
+          q1: {},
+          q2: {},
+          q3: {}
+        },
+        revealed: {
+          q0: false,
+          q1: false,
+          q2: false,
+          q3: false
+        }
       };
     }
 
-    state = { ...state, ...updates };
+    Object.keys(updates).forEach(updateKey => {
+      if (updateKey === 'responses' && typeof updates[updateKey] === 'object') {
+        Object.keys(updates.responses).forEach(qKey => {
+          const updateValue = updates.responses[qKey];
+          if (Object.keys(updateValue).length === 0) {
+            state.responses[qKey] = {};
+          } else {
+            if (!state.responses[qKey]) {
+              state.responses[qKey] = {};
+            }
+            state.responses[qKey] = {
+              ...state.responses[qKey],
+              ...updateValue
+            };
+          }
+        });
+      } else if (updateKey === 'revealed' && typeof updates[updateKey] === 'object') {
+        state.revealed = { ...state.revealed, ...updates[updateKey] };
+      } else {
+        state[updateKey] = updates[updateKey];
+      }
+    });
+    
     await kv.set(key, state);
 
     return res.status(200).json({ success: true, state });
