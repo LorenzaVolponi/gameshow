@@ -11,7 +11,6 @@ const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
 
 const mockKV = new Map();
 
@@ -95,6 +94,9 @@ app.all('/api/group', async (req, res) => {
 app.all('/api/ia', async (req, res) => {
   await adaptHandler('./api/ia.js', req, res);
 });
+
+// Servir arquivos estáticos DEPOIS das rotas da API (prioridade nas APIs)
+app.use(express.static('.'));
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 Dev server running on http://0.0.0.0:${PORT}`);

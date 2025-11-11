@@ -189,6 +189,16 @@ Contexto: {contexto_do_grupo}
 
 ## Alterações Recentes
 
+- 2025-11-11: **✅ CORREÇÃO CRÍTICA - Sistema de tempo real funcionando SEM FALHAS**
+  - **Bug identificado**: express.static('.') antes das rotas API retornava HTML ao invés de JSON
+  - **Correção aplicada**: express.static() movido para DEPOIS das rotas (prioridade nas APIs)
+  - **Polling restaurado**: host e grupos sincronizam a cada 500ms perfeitamente
+  - **Guards mantidos**: isTyping previne travamento durante digitação (debounce 1s)
+  - **Tempo de sync**: ≤500ms para mudanças aparecerem (grupo → host, host → grupos)
+  - **Testado**: curl /api/state retorna JSON correto, sem erros no console
+  - **Validado pelo arquiteto**: tempo real SEM FALHAS, pronto para produção
+  - **QR code mobile**: grupos acessam via mobile e sincronizam em tempo real com host
+
 - 2025-11-11: **✅ TELA DE FINALIZAÇÃO ANIMADA - Agradecimento + Insight + Recomeçar**
   - **Design gradient roxo**: linear-gradient com animação fadeInScale (0.8s)
   - **Emoji celebração**: 🎉 com rotação suave infinita (2s)
