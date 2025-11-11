@@ -423,6 +423,19 @@
       <div id="questionPreview"></div>
     </div>
 
+    <!-- GERENCIAMENTO DO JOGO (sempre visível) -->
+    <div class="section" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 20px;">
+      <h3>🔧 Gerenciamento</h3>
+      <div class="navigation-buttons">
+        <button class="btn" style="background: #ff9800; color: white; flex: 1;" onclick="restartGame()">🔄 Reiniciar Jogo</button>
+        <button class="btn" style="background: #f44336; color: white; flex: 1;" onclick="resetCompleteState()">⚠️ Resetar Tudo</button>
+      </div>
+      <p style="font-size: 13px; color: #856404; margin-top: 10px; margin-bottom: 0;">
+        <strong>Reiniciar:</strong> volta para configuração, mantém perguntas<br>
+        <strong>Resetar Tudo:</strong> limpa tudo (emergência para bugs)
+      </p>
+    </div>
+
     <!-- TELA DE CONFIGURAÇÃO -->
     <div id="controlsConfig">
       <div class="section">
@@ -886,6 +899,85 @@
         await updateState({ 
           currentQuestion: currentState.currentQuestion - 1 
         });
+      }
+    }
+
+    async function restartGame() {
+      const confirm1 = window.confirm(
+        '🔄 Reiniciar o jogo?\n\n' +
+        'Isso irá:\n' +
+        '✅ Manter as 4 perguntas configuradas\n' +
+        '❌ Apagar todas as respostas dos grupos\n' +
+        '❌ Apagar resposta da IA\n' +
+        '❌ Resetar reveals\n\n' +
+        'Você poderá reconfigurar as perguntas antes de iniciar novamente.'
+      );
+      
+      if (!confirm1) return;
+      
+      try {
+        await updateState({
+          currentQuestion: -1,
+          responses: { q0: {}, q1: {}, q2: {}, q3: {} },
+          revealed: { q0: false, q1: false, q2: false, q3: false }
+        });
+        
+        currentState.currentQuestion = -1;
+        currentState.responses = { q0: {}, q1: {}, q2: {}, q3: {} };
+        currentState.revealed = { q0: false, q1: false, q2: false, q3: false };
+        
+        updateUI(currentState);
+        
+        await fetchState();
+        alert('✅ Jogo reiniciado! Configure as perguntas e inicie novamente.');
+      } catch (err) {
+        console.error('Error restarting game:', err);
+        alert('❌ Erro ao reiniciar. Tente novamente.');
+      }
+    }
+
+    async function resetCompleteState() {
+      const confirm1 = window.confirm(
+        '⚠️ ATENÇÃO: RESETAR TODO O ESTADO?\n\n' +
+        'Isso irá APAGAR TUDO:\n' +
+        '❌ Perguntas configuradas\n' +
+        '❌ Respostas dos grupos\n' +
+        '❌ Resposta da IA\n' +
+        '❌ Reveals\n' +
+        '❌ Progresso do jogo\n\n' +
+        'Use apenas em caso de bugs graves!'
+      );
+      
+      if (!confirm1) return;
+      
+      const confirm2 = window.confirm(
+        '⚠️ ÚLTIMA CONFIRMAÇÃO\n\n' +
+        'Tem certeza que deseja apagar TUDO?\n' +
+        'Esta ação não pode ser desfeita!'
+      );
+      
+      if (!confirm2) return;
+      
+      try {
+        await updateState({
+          questions: ["", "", "", ""],
+          currentQuestion: -1,
+          responses: { q0: {}, q1: {}, q2: {}, q3: {} },
+          revealed: { q0: false, q1: false, q2: false, q3: false }
+        });
+        
+        currentState.questions = ["", "", "", ""];
+        currentState.currentQuestion = -1;
+        currentState.responses = { q0: {}, q1: {}, q2: {}, q3: {} };
+        currentState.revealed = { q0: false, q1: false, q2: false, q3: false };
+        
+        updateUI(currentState);
+        
+        await fetchState();
+        alert('✅ Estado resetado completamente! Configure as perguntas e inicie um novo jogo.');
+      } catch (err) {
+        console.error('Error resetting state:', err);
+        alert('❌ Erro ao resetar. Tente "Resetar Tudo" novamente ou entre em contato com suporte.');
       }
     }
 

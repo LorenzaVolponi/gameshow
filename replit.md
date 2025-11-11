@@ -189,6 +189,16 @@ Contexto: {contexto_do_grupo}
 
 ## Alterações Recentes
 
+- 2025-11-11: **✅ SISTEMA DE GERENCIAMENTO DO JOGO - Reinício e reset mobile-friendly**
+  - **Botões sempre visíveis**: seção de gerenciamento fora de controlsConfig/controlsGame
+  - **Reiniciar Jogo**: volta para configuração, mantém perguntas, limpa respostas/reveals
+  - **Resetar Tudo**: reset completo (emergência), limpa TUDO incluindo perguntas
+  - **Confirmações mobile-friendly**: mensagens claras com emojis, confirmação dupla no reset
+  - **Timing fix**: atualização local imediata (currentState) + updateUI() antes de fetchState()
+  - **UI responsiva**: transições instantâneas sem esperar polling (500ms)
+  - **Validado pelo arquiteto**: TODAS as correções aprovadas para produção
+  - **Uso mobile**: host controla jogo completamente via mobile, corrige bugs a qualquer momento
+
 - 2025-11-11: **✅ OTIMIZAÇÃO MOBILE COMPLETA - Interface responsiva e controle em tempo real**
   - **Design mobile-first**: CSS variables (--spacing-*, --font-size-*, --btn-height-mobile)
   - **Breakpoint ≤768px**: layout adaptativo com accordion sections colapsáveis
