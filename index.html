@@ -5,30 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Host - Conselheiro vs Máquina</title>
   <style>
+    :root {
+      --primary-color: #667eea;
+      --primary-dark: #5568d3;
+      --success-color: #48bb78;
+      --danger-color: #f56565;
+      --warning-color: #ed8936;
+      --bg-light: #f7fafc;
+      --text-dark: #2d3748;
+      --text-gray: #666;
+      --border-color: #e2e8f0;
+      --spacing-xs: 8px;
+      --spacing-sm: 12px;
+      --spacing-md: 16px;
+      --spacing-lg: 20px;
+      --spacing-xl: 30px;
+      --btn-min-height: 48px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
       min-height: 100vh;
-      padding: 20px;
+      padding: var(--spacing-lg);
+      padding-bottom: 80px;
     }
     .container {
       max-width: 1200px;
       margin: 0 auto;
       background: white;
-      border-radius: 12px;
-      padding: 30px;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-xl);
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
     h1 {
-      color: #667eea;
+      color: var(--primary-color);
       margin-bottom: 10px;
-      font-size: 32px;
+      font-size: clamp(24px, 5vw, 32px);
     }
     .subtitle {
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 16px;
+      color: var(--text-gray);
+      margin-bottom: var(--spacing-xl);
+      font-size: clamp(14px, 3vw, 16px);
     }
     .status {
       background: #f7fafc;
@@ -63,45 +83,60 @@
       color: #e53e3e;
     }
     .btn {
-      padding: 12px 24px;
+      min-height: var(--btn-min-height);
+      padding: var(--spacing-sm) var(--spacing-lg);
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: var(--radius-sm);
+      font-size: clamp(14px, 3.5vw, 16px);
       font-weight: 600;
       cursor: pointer;
       margin-right: 10px;
       margin-bottom: 10px;
       transition: all 0.3s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .btn-primary {
-      background: #667eea;
+      background: var(--primary-color);
       color: white;
     }
     .btn-primary:hover {
-      background: #5568d3;
+      background: var(--primary-dark);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
     .btn-success {
-      background: #48bb78;
+      background: var(--success-color);
       color: white;
     }
     .btn-success:hover {
       background: #38a169;
     }
+    .btn-success:active {
+      transform: translateY(0);
+    }
     .btn-danger {
-      background: #f56565;
+      background: var(--danger-color);
       color: white;
     }
     .btn-danger:hover {
       background: #e53e3e;
     }
+    .btn-danger:active {
+      transform: translateY(0);
+    }
     .btn-warning {
-      background: #ed8936;
+      background: var(--warning-color);
       color: white;
     }
     .btn-warning:hover {
       background: #dd6b20;
+    }
+    .btn-warning:active {
+      transform: translateY(0);
     }
     .btn:disabled {
       opacity: 0.5;
@@ -208,6 +243,167 @@
       display: flex;
       gap: 10px;
       margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Acordeões Colapsáveis */
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      padding: var(--spacing-md);
+      background: var(--bg-light);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--spacing-sm);
+      border: 2px solid var(--border-color);
+      transition: all 0.3s;
+    }
+    .accordion-header:active {
+      background: #e2e8f0;
+    }
+    .accordion-header h3 {
+      margin: 0;
+      font-size: clamp(16px, 4vw, 18px);
+    }
+    .accordion-icon {
+      font-size: 20px;
+      transition: transform 0.3s;
+    }
+    .accordion-header.collapsed .accordion-icon {
+      transform: rotate(-90deg);
+    }
+    .accordion-content {
+      max-height: 5000px;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, opacity 0.3s;
+      opacity: 1;
+    }
+    .accordion-content.collapsed {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    /* Barra Inferior Fixa (Mobile) */
+    .bottom-bar {
+      display: none;
+    }
+    
+    /* Desktop Controls */
+    .desktop-controls {
+      display: block;
+    }
+
+    /* Media Queries Mobile */
+    @media (max-width: 768px) {
+      body {
+        padding: var(--spacing-sm);
+        padding-bottom: 100px;
+      }
+      .container {
+        padding: var(--spacing-md);
+        border-radius: var(--radius-sm);
+      }
+      h1 {
+        font-size: 22px;
+      }
+      .subtitle {
+        font-size: 13px;
+        margin-bottom: var(--spacing-md);
+      }
+      .status {
+        padding: var(--spacing-md);
+      }
+      .status-info {
+        font-size: 18px;
+      }
+      .section {
+        padding: var(--spacing-md);
+        margin: var(--spacing-sm) 0;
+      }
+      .section h3 {
+        font-size: 16px;
+      }
+      .question-input {
+        font-size: 15px;
+        padding: var(--spacing-sm);
+        min-height: 70px;
+      }
+      .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: var(--spacing-sm);
+        font-size: 15px;
+        padding: var(--spacing-md);
+      }
+      .navigation-buttons .btn {
+        flex: 1;
+        min-width: 120px;
+      }
+      .groups-list {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-xs);
+      }
+      .group-badge {
+        padding: var(--spacing-xs);
+        font-size: 13px;
+      }
+      .response-item {
+        padding: var(--spacing-sm);
+        font-size: 14px;
+      }
+      .response-label {
+        font-size: 14px;
+      }
+      .reveal-box {
+        padding: var(--spacing-md);
+      }
+      .reveal-box h4 {
+        font-size: 16px;
+      }
+      .finished {
+        padding: var(--spacing-lg);
+        font-size: 18px;
+      }
+
+      /* Ocultar controles desktop em mobile */
+      .desktop-controls {
+        display: none !important;
+      }
+
+      /* Barra Inferior Fixa */
+      .bottom-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 2px solid var(--border-color);
+        padding: var(--spacing-sm);
+        gap: var(--spacing-xs);
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+        z-index: 1000;
+      }
+      .bottom-bar .btn {
+        flex: 1;
+        margin: 0;
+        font-size: 13px;
+        padding: var(--spacing-sm);
+      }
+    }
+
+    @media (max-width: 400px) {
+      .groups-list {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .navigation-buttons {
+        flex-direction: column;
+      }
+      .navigation-buttons .btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -262,42 +458,68 @@
 
     <!-- TELA DE JOGO -->
     <div id="controlsGame" style="display: none;">
-      <div class="section">
+      <!-- Seção: Grupos -->
+      <div class="accordion-header" data-accordion="accordionGroups" onclick="toggleAccordion('accordionGroups')">
         <h3>📝 Grupos que responderam</h3>
-        <div class="groups-list" id="groupsList">
-          <div class="group-badge">G1</div>
-          <div class="group-badge">G2</div>
-          <div class="group-badge">G3</div>
-          <div class="group-badge">G4</div>
-          <div class="group-badge">G5</div>
-          <div class="group-badge">G6</div>
-          <div class="group-badge">G7</div>
-          <div class="group-badge">G8</div>
-          <div class="group-badge">G9</div>
+        <span class="accordion-icon">▼</span>
+      </div>
+      <div id="accordionGroups" class="accordion-content">
+        <div class="section" style="margin-top: 0; border-left: none;">
+          <div class="groups-list" id="groupsList">
+            <div class="group-badge">G1</div>
+            <div class="group-badge">G2</div>
+            <div class="group-badge">G3</div>
+            <div class="group-badge">G4</div>
+            <div class="group-badge">G5</div>
+            <div class="group-badge">G6</div>
+            <div class="group-badge">G7</div>
+            <div class="group-badge">G8</div>
+            <div class="group-badge">G9</div>
+          </div>
         </div>
       </div>
 
-      <div class="section">
+      <!-- Seção: Respostas -->
+      <div class="accordion-header" data-accordion="accordionResponses" onclick="toggleAccordion('accordionResponses')">
         <h3>📋 Respostas da Pergunta</h3>
-        <div id="responsesDisplay" style="margin-bottom: 15px;">
-          <div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>
+        <span class="accordion-icon">▼</span>
+      </div>
+      <div id="accordionResponses" class="accordion-content">
+        <div class="section" style="margin-top: 0; border-left: none;">
+          <div id="responsesDisplay" style="margin-bottom: 15px;">
+            <div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>
+          </div>
         </div>
-        <button class="btn btn-warning" onclick="generateIA()" id="btnGenerateIA">⚡ Gerar Resposta da IA</button>
       </div>
 
-      <div class="section">
+      <!-- Seção: Revelar -->
+      <div class="accordion-header" data-accordion="accordionReveal" onclick="toggleAccordion('accordionReveal')">
         <h3>👁️ Revelar Resultados</h3>
-        <button class="btn btn-danger" onclick="revealCurrent()" id="btnReveal">Revelar IA vs Humano</button>
-        <div id="revealDisplay" style="margin-top: 15px;"></div>
+        <span class="accordion-icon">▼</span>
+      </div>
+      <div id="accordionReveal" class="accordion-content collapsed">
+        <div class="section" style="margin-top: 0; border-left: none;">
+          <div id="revealDisplay"></div>
+        </div>
       </div>
 
-      <div class="section">
-        <h3>🔄 Navegação</h3>
+      <!-- Controles Desktop (ocultos em mobile) -->
+      <div class="desktop-controls" style="margin-top: 20px;">
+        <button class="btn btn-warning" onclick="generateIA()" id="btnGenerateIA">⚡ Gerar Resposta da IA</button>
+        <button class="btn btn-danger" onclick="revealCurrent()" id="btnReveal">👁️ Revelar IA vs Humano</button>
         <div class="navigation-buttons">
           <button class="btn btn-primary" onclick="previousQuestion()" id="btnPrevious">◀ Pergunta Anterior</button>
           <button class="btn btn-primary" onclick="nextQuestion()" id="btnNext">Próxima Pergunta ▶</button>
         </div>
       </div>
+    </div>
+
+    <!-- Barra Inferior (Mobile) -->
+    <div class="bottom-bar">
+      <button class="btn btn-primary" onclick="previousQuestion()" id="btnPreviousMobile">◀</button>
+      <button class="btn btn-warning" onclick="generateIA()" id="btnGenerateIAMobile">🤖 IA</button>
+      <button class="btn btn-danger" onclick="revealCurrent()" id="btnRevealMobile">👁️ Revelar</button>
+      <button class="btn btn-primary" onclick="nextQuestion()" id="btnNextMobile">▶</button>
     </div>
 
     <!-- TELA FINAL -->
@@ -346,6 +568,7 @@
       const controlsConfig = document.getElementById('controlsConfig');
       const controlsGame = document.getElementById('controlsGame');
       const finishedScreen = document.getElementById('finishedScreen');
+      const bottomBar = document.querySelector('.bottom-bar');
 
       if (state.currentQuestion === -1) {
         statusInfo.textContent = 'Aguardando configuração...';
@@ -353,10 +576,12 @@
         controlsConfig.style.display = 'block';
         controlsGame.style.display = 'none';
         finishedScreen.style.display = 'none';
+        if (bottomBar) bottomBar.style.display = 'none';
       } else if (state.currentQuestion > 3) {
         controlsConfig.style.display = 'none';
         controlsGame.style.display = 'none';
         finishedScreen.style.display = 'block';
+        if (bottomBar) bottomBar.style.display = 'none';
       } else {
         const questionNum = state.currentQuestion + 1;
         statusInfo.textContent = `Pergunta ${questionNum} de 4`;
@@ -365,6 +590,9 @@
         controlsConfig.style.display = 'none';
         controlsGame.style.display = 'block';
         finishedScreen.style.display = 'none';
+        if (bottomBar && window.innerWidth <= 768) {
+          bottomBar.style.display = 'flex';
+        }
 
         updateGroupsList(state);
         updateResponsesDisplay(state);
@@ -460,15 +688,27 @@
     function updateNavigationButtons(state) {
       const btnPrevious = document.getElementById('btnPrevious');
       const btnNext = document.getElementById('btnNext');
+      const btnPreviousMobile = document.getElementById('btnPreviousMobile');
+      const btnNextMobile = document.getElementById('btnNextMobile');
 
-      btnPrevious.disabled = state.currentQuestion === 0;
+      const isPrevDisabled = state.currentQuestion === 0;
+      btnPrevious.disabled = isPrevDisabled;
+      if (btnPreviousMobile) btnPreviousMobile.disabled = isPrevDisabled;
 
       if (state.currentQuestion === 3) {
         btnNext.textContent = 'Finalizar Jogo ✓';
         btnNext.disabled = false;
+        if (btnNextMobile) {
+          btnNextMobile.textContent = '✓';
+          btnNextMobile.disabled = false;
+        }
       } else {
         btnNext.textContent = 'Próxima Pergunta ▶';
         btnNext.disabled = false;
+        if (btnNextMobile) {
+          btnNextMobile.textContent = '▶';
+          btnNextMobile.disabled = false;
+        }
       }
     }
 
@@ -548,9 +788,17 @@
     }
 
     async function generateIA() {
-      const btn = document.getElementById('btnGenerateIA');
-      btn.disabled = true;
-      btn.textContent = '⏳ Gerando IA (pode levar alguns segundos)...';
+      const btnDesktop = document.getElementById('btnGenerateIA');
+      const btnMobile = document.getElementById('btnGenerateIAMobile');
+      
+      if (btnDesktop) {
+        btnDesktop.disabled = true;
+        btnDesktop.textContent = '⏳ Gerando IA (pode levar alguns segundos)...';
+      }
+      if (btnMobile) {
+        btnMobile.disabled = true;
+        btnMobile.textContent = '⏳';
+      }
 
       try {
         const currentQuestion = currentState.questions[currentState.currentQuestion];
@@ -576,28 +824,45 @@
         console.error('Error generating IA:', err);
         alert('❌ Erro ao gerar IA. Verifique sua conexão e tente novamente.');
       } finally {
-        btn.disabled = false;
-        btn.textContent = '⚡ Gerar Resposta da IA';
+        if (btnDesktop) {
+          btnDesktop.disabled = false;
+          btnDesktop.textContent = '⚡ Gerar Resposta da IA';
+        }
+        if (btnMobile) {
+          btnMobile.disabled = false;
+          btnMobile.textContent = '🤖 IA';
+        }
       }
     }
 
     async function revealCurrent() {
-      const questionKey = `q${currentState.currentQuestion}`;
-      const responses = currentState.responses[questionKey] || {};
+      const btnDesktop = document.getElementById('btnReveal');
+      const btnMobile = document.getElementById('btnRevealMobile');
       
-      if (Object.keys(responses).length === 0) {
-        alert('Não há respostas para revelar ainda!');
-        return;
-      }
-
-      await updateState({
-        revealed: {
-          ...currentState.revealed,
-          [questionKey]: true
+      if (btnDesktop) btnDesktop.disabled = true;
+      if (btnMobile) btnMobile.disabled = true;
+      
+      try {
+        const questionKey = `q${currentState.currentQuestion}`;
+        const responses = currentState.responses[questionKey] || {};
+        
+        if (Object.keys(responses).length === 0) {
+          alert('Não há respostas para revelar ainda!');
+          return;
         }
-      });
 
-      alert('👁 Resultados revelados!');
+        await updateState({
+          revealed: {
+            ...currentState.revealed,
+            [questionKey]: true
+          }
+        });
+
+        alert('👁 Resultados revelados!');
+      } finally {
+        if (btnDesktop) btnDesktop.disabled = false;
+        if (btnMobile) btnMobile.disabled = false;
+      }
     }
 
     async function nextQuestion() {
@@ -617,6 +882,24 @@
         await updateState({ 
           currentQuestion: currentState.currentQuestion - 1 
         });
+      }
+    }
+
+    // Acordeões colapsáveis
+    function toggleAccordion(id) {
+      const header = document.querySelector(`[data-accordion="${id}"]`);
+      const content = document.getElementById(id);
+      
+      if (!header || !content) return;
+      
+      const isCollapsed = content.classList.contains('collapsed');
+      
+      if (isCollapsed) {
+        content.classList.remove('collapsed');
+        header.classList.remove('collapsed');
+      } else {
+        content.classList.add('collapsed');
+        header.classList.add('collapsed');
       }
     }
 
