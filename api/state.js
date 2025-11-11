@@ -1,4 +1,5 @@
 import { getKV } from '../lib/services.js';
+import { getQueryParams } from '../lib/http.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
 
   try {
     const kv = getKV();
-    const { room = 'default' } = req.query;
+    const { room = 'default' } = getQueryParams(req);
     const key = `room:${room}:state`;
     
     let state = await kv.get(key);
