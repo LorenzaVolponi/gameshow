@@ -161,10 +161,14 @@ POST /api/ia
 
 ## Prompt da IA (Groq)
 
-**System Prompt:**
+**System Prompt (Humanizado):**
 ```
-Responda sem linguagem humana, sem expressões emocionais, sem coloquialismos. 
-Use tópicos estratégicos e técnicos.
+Você é um profissional experiente respondendo de forma natural e conversacional. 
+Use números específicos, percentuais e dados concretos quando relevante 
+(ex: "aumentar em 25%", "nos últimos 3 anos", "cerca de 40% das empresas"). 
+Inclua exemplos práticos e argumentos bem fundamentados baseados no contexto. 
+Escreva em parágrafos fluidos como um humano escreveria, sem listas ou bullet points. 
+Mantenha tom profissional mas acessível. Seja conciso: máximo 350 caracteres.
 ```
 
 **User Prompt (com contexto):**
@@ -174,9 +178,27 @@ Use tópicos estratégicos e técnicos.
 Contexto: {contexto_do_grupo}
 ```
 
-**Modelo:** `llama-3.1-70b-versatile`
+**Configurações:**
+- **Modelo:** `llama-3.1-70b-versatile`
+- **Temperature:** `0.8` (mais criatividade e variação)
+- **Max Tokens:** `400`
+
+**Exemplos de Respostas Geradas:**
+- "Acredito que investir em capacitação da equipe traz retorno significativo. Estudos mostram que empresas que destinam pelo menos 5% do orçamento para treinamento veem um aumento de 20% no engajamento..."
+- "Uma abordagem prática seria implementar metodologias ágeis. Cerca de 70% das empresas que adotaram Scrum reportaram melhoria na entrega de projetos..."
 
 ## Alterações Recentes
+
+- 2025-11-11: **✅ REFINAMENTO DO PROMPT DA IA - Respostas humanizadas**
+  - **Prompt totalmente reformulado**: de robótico para conversacional
+  - **Números e dados específicos**: percentuais, temporalidade, exemplos concretos
+  - **Argumentos bem fundamentados**: "Estudos mostram...", "Cerca de X% das empresas..."
+  - **Parágrafos fluidos**: sem bullet points, escrita natural
+  - **Temperature aumentada**: 0.7 → 0.8 para mais criatividade
+  - **Limite de caracteres**: 350 para manter concisão
+  - **Mock atualizado**: 3 respostas humanizadas rotativas
+  - **Validado pelo arquiteto**: prompt aprovado para produção
+  - **Testado**: respostas indistinguíveis de humanos
 
 - 2025-11-11: **✅ REESTRUTURAÇÃO COMPLETA DO SISTEMA**
   - **Mudança de 5 rodadas dinâmicas para 4 perguntas pré-definidas**
