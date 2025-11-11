@@ -189,6 +189,18 @@ Contexto: {contexto_do_grupo}
 
 ## Alterações Recentes
 
+- 2025-11-11: **✅ OTIMIZAÇÃO MOBILE COMPLETA - Interface responsiva e controle em tempo real**
+  - **Design mobile-first**: CSS variables (--spacing-*, --font-size-*, --btn-height-mobile)
+  - **Breakpoint ≤768px**: layout adaptativo com accordion sections colapsáveis
+  - **Barra inferior fixa**: ações rápidas (IA, Reveal, Navegação) visível apenas durante jogo ativo
+  - **Botões touch-friendly**: ≥48px mínimo, hitboxes generosas, feedback visual consistente
+  - **Sincronização desktop/mobile**: todos os botões (navegação, IA, reveal) desabilitados em lockstep
+  - **Controle de estado responsivo**: barra inferior oculta em setup/final, responsive resize (375×667 ↔ 1024×768)
+  - **Race conditions eliminadas**: múltiplos taps prevenidos em operações assíncronas (IA, reveal)
+  - **Validado pelo arquiteto**: TODAS as correções aprovadas para produção
+  - **Testado em mobile**: iPhone SE (375×667), responsividade completa
+  - **Documentação de deploy**: DEPLOY.md criado com guia completo Vercel
+
 - 2025-11-11: **✅ REFINAMENTO DO PROMPT DA IA - Respostas humanizadas**
   - **Prompt totalmente reformulado**: de robótico para conversacional
   - **Números e dados específicos**: percentuais, temporalidade, exemplos concretos
