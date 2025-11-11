@@ -223,7 +223,10 @@
     </div>
 
     <div id="controlsStart">
-      <textarea id="questionInput" class="question-input" placeholder="Digite a pergunta para P1..."></textarea>
+      <div style="position: relative;">
+        <textarea id="questionInput" class="question-input" placeholder="Digite a pergunta para P1..." maxlength="500" oninput="updateCharCount('questionInput', 'charCount1')"></textarea>
+        <div id="charCount1" style="text-align: right; color: #666; font-size: 12px; margin-top: 5px;">0 / 500 caracteres</div>
+      </div>
       <button class="btn btn-primary" onclick="startGame()">▶ Iniciar Jogo (P1)</button>
     </div>
 
@@ -244,9 +247,11 @@
       </div>
 
       <div class="section">
-        <h3>🤖 Gerar Resposta da IA</h3>
-        <button class="btn btn-warning" onclick="generateIA()" id="btnGenerateIA">⚡ Gerar IA (Groq LLaMA)</button>
-        <div id="iaPreview" style="margin-top: 15px;"></div>
+        <h3>📋 Respostas da Rodada</h3>
+        <div id="responsesDisplay" style="margin-bottom: 15px;">
+          <div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>
+        </div>
+        <button class="btn btn-warning" onclick="generateIA()" id="btnGenerateIA">⚡ Gerar Resposta da IA</button>
       </div>
 
       <div class="section">
@@ -263,7 +268,10 @@
 
       <div class="section">
         <h3>⏭ Próxima Rodada</h3>
-        <textarea id="nextQuestionInput" class="question-input" placeholder="Digite a pergunta para a próxima rodada..."></textarea>
+        <div style="position: relative;">
+          <textarea id="nextQuestionInput" class="question-input" placeholder="Digite a pergunta para a próxima rodada..." maxlength="500" oninput="updateCharCount('nextQuestionInput', 'charCount2')"></textarea>
+          <div id="charCount2" style="text-align: right; color: #666; font-size: 12px; margin-top: 5px;">0 / 500 caracteres</div>
+        </div>
         <button class="btn btn-primary" onclick="nextRound()" id="btnNextRound">▶ Avançar para Próxima Rodada</button>
       </div>
     </div>
@@ -281,6 +289,15 @@
     let pollingInterval;
     let currentState = {};
     let isFetching = false;
+
+    function updateCharCount(textareaId, counterId) {
+      const textarea = document.getElementById(textareaId);
+      const counter = document.getElementById(counterId);
+      const length = textarea.value.length;
+      const maxLength = textarea.maxLength;
+      counter.textContent = `${length} / ${maxLength} caracteres`;
+      counter.style.color = length > maxLength * 0.9 ? '#e53e3e' : '#666';
+    }
 
     async function fetchState() {
       if (isFetching) return;
@@ -301,16 +318,26 @@
     function updateUI(state) {
       const roundInfo = document.getElementById('roundInfo');
       const questionDisplay = document.getElementById('questionDisplay');
+      const controlsStart = document.getElementById('controlsStart');
+      const controlsGame = document.getElementById('controlsGame');
+      const finishedScreen = document.getElementById('finishedScreen');
 
       if (state.round === 0) {
         roundInfo.textContent = 'Aguardando início...';
         questionDisplay.textContent = '';
+        controlsStart.style.display = 'block';
+        controlsGame.style.display = 'none';
+        finishedScreen.style.display = 'none';
       } else if (state.round > 5) {
-        document.getElementById('controlsGame').style.display = 'none';
-        document.getElementById('finishedScreen').style.display = 'block';
+        controlsStart.style.display = 'none';
+        controlsGame.style.display = 'none';
+        finishedScreen.style.display = 'block';
       } else {
         roundInfo.textContent = `Rodada P${state.round} de 5`;
         questionDisplay.innerHTML = `<strong>Pergunta:</strong> ${state.question}`;
+        controlsStart.style.display = 'none';
+        controlsGame.style.display = 'block';
+        finishedScreen.style.display = 'none';
         
         const groups = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'];
         const groupsList = document.getElementById('groupsList');
@@ -319,18 +346,42 @@
           return `<div class="group-badge ${hasResponse ? 'active' : ''}">${g}</div>`;
         }).join('');
 
-        if (state.ia) {
-          document.getElementById('iaPreview').innerHTML = `
-            <div class="response-item">
-              <div class="response-label">
-                <span>🤖 Resposta da IA</span>
-                <span class="ia-badge">Groq LLaMA 3.1</span>
+        let responsesHtml = '';
+        const hasResponses = state.responses && Object.keys(state.responses).length > 0;
+        const hasIA = state.ia && state.ia.length > 0;
+        
+        if (hasResponses || hasIA) {
+          if (hasResponses) {
+            responsesHtml += '<div style="margin-bottom: 15px;"><strong style="color: #48bb78;">👥 Respostas dos Grupos:</strong></div>';
+            Object.entries(state.responses).forEach(([group, response]) => {
+              responsesHtml += `
+                <div class="response-item" style="margin-bottom: 10px;">
+                  <div class="response-label">
+                    <span>${group}</span>
+                    <span class="human-badge">Humano</span>
+                  </div>
+                  <div style="color: #4a5568; line-height: 1.6;">${response}</div>
+                </div>
+              `;
+            });
+          }
+          
+          if (hasIA) {
+            responsesHtml += '<div style="margin: 20px 0 10px 0;"><strong style="color: #ed8936;">🤖 Resposta da IA:</strong></div>';
+            responsesHtml += `
+              <div class="response-item">
+                <div class="response-label">
+                  <span>Groq LLaMA 3.1</span>
+                  <span class="ia-badge">IA</span>
+                </div>
+                <div style="color: #4a5568; line-height: 1.6;">${state.ia}</div>
               </div>
-              <div style="color: #4a5568; line-height: 1.6;">${state.ia}</div>
-            </div>
-          `;
+            `;
+          }
+          
+          document.getElementById('responsesDisplay').innerHTML = responsesHtml;
         } else {
-          document.getElementById('iaPreview').innerHTML = '';
+          document.getElementById('responsesDisplay').innerHTML = '<div style="color: #666; font-style: italic;">Aguardando respostas dos grupos...</div>';
         }
 
         if (state.mapping && Object.keys(state.mapping).length > 0) {
@@ -458,7 +509,7 @@
         alert('❌ Erro ao gerar IA. Verifique sua conexão e tente novamente.');
       } finally {
         btn.disabled = false;
-        btn.textContent = '⚡ Gerar IA (Groq LLaMA)';
+        btn.textContent = '⚡ Gerar Resposta da IA';
       }
     }
 

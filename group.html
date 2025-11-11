@@ -219,6 +219,11 @@
     let currentState = {};
     let lastSubmittedRound = 0;
     let isFetching = false;
+    let isTyping = false;
+    let typingDebounceTimer = null;
+    let localDraft = '';
+    let lastServerRound = 0;
+    let lastServerResponse = '';
 
     function getGroupID() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -246,7 +251,7 @@
     document.getElementById('groupBadge').textContent = GROUP_ID;
 
     async function fetchState() {
-      if (isFetching) return;
+      if (isFetching || isTyping) return;
       
       isFetching = true;
       const indicator = document.getElementById('syncIndicator');
@@ -291,14 +296,28 @@
         roundInfo.textContent = `Rodada P${state.round} de 5`;
         questionText.textContent = state.question || 'Aguardando pergunta...';
 
-        const hasResponse = state.responses && state.responses[GROUP_ID];
+        const roundChanged = lastServerRound !== state.round;
+        const serverResponse = state.responses && state.responses[GROUP_ID] || '';
+        const currentValue = responseInput.value;
+        const userHasEdited = currentValue !== lastServerResponse && currentValue.trim() !== '';
         
-        if (hasResponse && state.round !== lastSubmittedRound) {
-          responseInput.value = state.responses[GROUP_ID];
-          lastSubmittedRound = state.round;
-        } else if (state.round !== lastSubmittedRound) {
-          responseInput.value = '';
+        if (roundChanged) {
+          lastServerRound = state.round;
+          
+          if (serverResponse) {
+            responseInput.value = serverResponse;
+            localDraft = serverResponse;
+            lastServerResponse = serverResponse;
+          } else {
+            responseInput.value = '';
+            localDraft = '';
+            lastServerResponse = '';
+          }
           successMessage.classList.remove('show');
+        } else if (!isTyping && !userHasEdited && serverResponse && serverResponse !== currentValue) {
+          responseInput.value = serverResponse;
+          localDraft = serverResponse;
+          lastServerResponse = serverResponse;
         }
       }
     }
@@ -351,6 +370,8 @@
         const result = await submitResponseWithRetry(response, 3);
         
         if (result.success) {
+          localDraft = response;
+          lastServerResponse = response;
           document.getElementById('successMessage').classList.add('show');
           lastSubmittedRound = currentState.round;
           
@@ -371,8 +392,30 @@
       }
     }
 
+    function setupTypingGuards() {
+      const textarea = document.getElementById('responseInput');
+      
+      textarea.addEventListener('input', (e) => {
+        isTyping = true;
+        localDraft = e.target.value;
+        
+        clearTimeout(typingDebounceTimer);
+        typingDebounceTimer = setTimeout(() => {
+          isTyping = false;
+          fetchState();
+        }, 1000);
+      });
+      
+      textarea.addEventListener('blur', () => {
+        clearTimeout(typingDebounceTimer);
+        isTyping = false;
+        fetchState();
+      });
+    }
+
     fetchState();
     pollingInterval = setInterval(fetchState, 500);
+    setupTypingGuards();
   </script>
 </body>
 </html>
