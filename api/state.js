@@ -1,6 +1,7 @@
 import { getKV } from '../lib/services.js';
+import { getQueryParams, createApiHandler } from '../lib/http.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
 
   try {
     const kv = getKV();
-    const { room = 'default' } = req.query;
+    const { room = 'default' } = getQueryParams(req);
     const key = `room:${room}:state`;
     
     let state = await kv.get(key);
@@ -46,3 +47,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default createApiHandler(handler);

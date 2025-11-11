@@ -1,6 +1,7 @@
 import { getKV } from '../lib/services.js';
+import { parseJsonBody, createApiHandler } from '../lib/http.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,9 +14,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let body;
+
+  try {
+    body = await parseJsonBody(req);
+  } catch (error) {
+    const statusCode = error.statusCode || 400;
+    return res.status(statusCode).json({ error: error.message });
+  }
+
   try {
     const kv = getKV();
-    const { room = 'default', updates } = req.body;
+    const { room = 'default', updates } = body;
     
     if (!updates || typeof updates !== 'object') {
       return res.status(400).json({ error: 'Invalid updates' });
@@ -74,3 +84,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default createApiHandler(handler);
