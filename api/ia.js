@@ -1,4 +1,5 @@
 import { getKV, getGroq } from '../lib/services.js';
+import { parseJsonBody } from '../lib/http.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,10 +14,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let body;
+
+  try {
+    body = await parseJsonBody(req);
+  } catch (error) {
+    const statusCode = error.statusCode || 400;
+    return res.status(statusCode).json({ error: error.message });
+  }
+
   try {
     const kv = getKV();
     const groq = getGroq();
-    const { room = 'default', question, context, saveToState = true } = req.body;
+    const { room = 'default', question, context, saveToState = true } = body;
     
     if (!question) {
       return res.status(400).json({ error: 'Missing question' });

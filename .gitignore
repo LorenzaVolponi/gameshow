@@ -1,5 +1,6 @@
 node_modules/
 .vercel/
+.local/
 .env
 .env.local
 .DS_Store
