@@ -590,8 +590,12 @@
         controlsConfig.style.display = 'none';
         controlsGame.style.display = 'block';
         finishedScreen.style.display = 'none';
-        if (bottomBar && window.innerWidth <= 768) {
-          bottomBar.style.display = 'flex';
+        if (bottomBar) {
+          if (window.innerWidth <= 768) {
+            bottomBar.style.display = 'flex';
+          } else {
+            bottomBar.style.display = 'none';
+          }
         }
 
         updateGroupsList(state);
