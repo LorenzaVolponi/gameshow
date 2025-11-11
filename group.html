@@ -56,11 +56,28 @@
       text-align: center;
       border-left: 4px solid #667eea;
     }
-    .round-info {
+    .question-info {
       font-size: 20px;
       font-weight: bold;
       color: #667eea;
       margin-bottom: 10px;
+    }
+    .context-box {
+      background: #fff5e6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #ed8936;
+    }
+    .context-label {
+      font-weight: bold;
+      color: #ed8936;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .context-text {
+      color: #4a5568;
+      line-height: 1.6;
     }
     .question {
       background: white;
@@ -111,13 +128,22 @@
       cursor: pointer;
       margin-top: 15px;
       transition: all 0.3s;
+    }
+    .btn-primary {
       background: #667eea;
       color: white;
     }
-    .btn:hover {
+    .btn-primary:hover {
       background: #5568d3;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-warning {
+      background: #ed8936;
+      color: white;
+    }
+    .btn-warning:hover {
+      background: #dd6b20;
     }
     .btn:disabled {
       opacity: 0.5;
@@ -188,7 +214,12 @@
 
     <div id="gameScreen" style="display: none;">
       <div class="status">
-        <div class="round-info" id="roundInfo">Rodada P1</div>
+        <div class="question-info" id="questionInfo">Pergunta 1 de 4</div>
+      </div>
+
+      <div class="context-box" id="contextBox">
+        <span class="context-label">🎯 Seu Contexto:</span>
+        <div class="context-text" id="contextText">Carregando contexto...</div>
       </div>
 
       <div class="question">
@@ -198,7 +229,8 @@
 
       <textarea id="responseInput" placeholder="Digite sua resposta aqui..."></textarea>
       
-      <button class="btn" id="submitBtn" onclick="submitResponse(event)">📤 Enviar Resposta</button>
+      <button class="btn btn-warning" id="generateWithIABtn" onclick="generateWithIA()">🤖 Gerar com IA</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitResponse(event)">📤 Enviar Resposta</button>
       
       <div class="success-message" id="successMessage">
         ✅ Resposta enviada com sucesso!
@@ -217,13 +249,24 @@
     
     let pollingInterval;
     let currentState = {};
-    let lastSubmittedRound = 0;
     let isFetching = false;
     let isTyping = false;
     let typingDebounceTimer = null;
     let localDraft = '';
-    let lastServerRound = 0;
+    let lastServerQuestion = -1;
     let lastServerResponse = '';
+
+    const GROUP_CONTEXTS = {
+      'G1': 'Você é um consultor de TI especializado em transformação digital para pequenas empresas.',
+      'G2': 'Você é um gerente de recursos humanos de uma startup em crescimento com 50 funcionários.',
+      'G3': 'Você é um diretor financeiro de uma empresa de médio porte do setor de varejo.',
+      'G4': 'Você é um profissional de marketing digital trabalhando em uma agência criativa.',
+      'G5': 'Você é um engenheiro de software líder técnico em uma empresa de tecnologia.',
+      'G6': 'Você é um empreendedor que acabou de lançar um negócio no setor de alimentos.',
+      'G7': 'Você é um coordenador de logística em uma empresa de e-commerce.',
+      'G8': 'Você é um professor universitário de administração e gestão de negócios.',
+      'G9': 'Você é um analista de dados trabalhando no setor de saúde.'
+    };
 
     function getGroupID() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -249,6 +292,7 @@
     }
 
     document.getElementById('groupBadge').textContent = GROUP_ID;
+    document.getElementById('contextText').textContent = GROUP_CONTEXTS[GROUP_ID] || 'Sem contexto específico.';
 
     async function fetchState() {
       if (isFetching || isTyping) return;
@@ -275,16 +319,16 @@
       const waitingScreen = document.getElementById('waitingScreen');
       const gameScreen = document.getElementById('gameScreen');
       const finishedScreen = document.getElementById('finishedScreen');
-      const roundInfo = document.getElementById('roundInfo');
+      const questionInfo = document.getElementById('questionInfo');
       const questionText = document.getElementById('questionText');
       const responseInput = document.getElementById('responseInput');
       const successMessage = document.getElementById('successMessage');
 
-      if (state.round === 0) {
+      if (state.currentQuestion === -1) {
         waitingScreen.style.display = 'block';
         gameScreen.style.display = 'none';
         finishedScreen.style.display = 'none';
-      } else if (state.round > 5) {
+      } else if (state.currentQuestion > 3) {
         waitingScreen.style.display = 'none';
         gameScreen.style.display = 'none';
         finishedScreen.style.display = 'block';
@@ -293,16 +337,21 @@
         gameScreen.style.display = 'block';
         finishedScreen.style.display = 'none';
 
-        roundInfo.textContent = `Rodada P${state.round} de 5`;
-        questionText.textContent = state.question || 'Aguardando pergunta...';
+        questionInfo.textContent = `Pergunta ${state.currentQuestion + 1} de 4`;
+        const questions = state.questions || [];
+        const currentQuestion = questions[state.currentQuestion] || '';
+        questionText.textContent = currentQuestion || 'Aguardando pergunta...';
 
-        const roundChanged = lastServerRound !== state.round;
-        const serverResponse = state.responses && state.responses[GROUP_ID] || '';
+        const questionChanged = lastServerQuestion !== state.currentQuestion;
+        const questionKey = `q${state.currentQuestion}`;
+        const responses = state.responses || {};
+        const questionResponses = responses[questionKey] || {};
+        const serverResponse = questionResponses[GROUP_ID] || '';
         const currentValue = responseInput.value;
         const userHasEdited = currentValue !== lastServerResponse && currentValue.trim() !== '';
         
-        if (roundChanged) {
-          lastServerRound = state.round;
+        if (questionChanged) {
+          lastServerQuestion = state.currentQuestion;
           
           if (serverResponse) {
             responseInput.value = serverResponse;
@@ -319,6 +368,51 @@
           localDraft = serverResponse;
           lastServerResponse = serverResponse;
         }
+      }
+    }
+
+    async function generateWithIA() {
+      const btn = document.getElementById('generateWithIABtn');
+      const textarea = document.getElementById('responseInput');
+      
+      if (!currentState.questions || currentState.currentQuestion < 0) {
+        alert('Aguarde a pergunta ser carregada.');
+        return;
+      }
+
+      const currentQuestion = currentState.questions[currentState.currentQuestion];
+      const context = GROUP_CONTEXTS[GROUP_ID];
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Gerando com IA...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/ia`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            room: ROOM, 
+            question: currentQuestion,
+            context: context,
+            saveToState: false
+          })
+        });
+
+        const data = await res.json();
+        
+        if (data.success) {
+          textarea.value = data.ia;
+          localDraft = data.ia;
+          alert('✅ Resposta gerada com IA! Você pode editar antes de enviar.');
+        } else {
+          alert('❌ Erro ao gerar resposta: ' + (data.error || 'Erro desconhecido'));
+        }
+      } catch (err) {
+        console.error('Error generating IA:', err);
+        alert('❌ Erro ao gerar resposta com IA. Tente novamente.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🤖 Gerar com IA';
       }
     }
 
@@ -373,7 +467,6 @@
           localDraft = response;
           lastServerResponse = response;
           document.getElementById('successMessage').classList.add('show');
-          lastSubmittedRound = currentState.round;
           
           await fetchState();
           
