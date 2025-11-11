@@ -1,7 +1,11 @@
 {
+  "version": 2,
   "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
+    "index.php": {
+      "runtime": "vercel-php@0.5.0"
     }
-  }
+  },
+  "routes": [
+    { "src": "/(.*)", "dest": "index.php" }
+  ]
 }
