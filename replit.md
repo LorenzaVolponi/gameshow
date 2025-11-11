@@ -1,13 +1,12 @@
 # Conselheiro vs Máquina
 
-Sistema web interativo onde grupos competem com respostas geradas por IA (LLaMA 3.1-70b via Groq), e um júri vota sem saber qual é humana ou artificial.
+Sistema web interativo onde grupos (G1-G9) competem com respostas geradas por IA (LLaMA 3.1-70b via Groq). O jogo usa 4 perguntas pré-definidas e revela quais respostas são humanas vs artificiais.
 
 ## Visão Geral
 
-Sistema de votação em tempo real com três perfis:
-- **Host** (index.html): Controla as 5 rodadas (P1-P5), gera IA, embaralha respostas, revela resultados
-- **Grupos G1-G9** (group.html): Enviam respostas em texto
-- **Júri** (vote.html): Vota entre A ou B sem saber a origem
+Sistema de respostas em tempo real com dois perfis:
+- **Host** (index.html): Configura 4 perguntas, navega entre elas, gera IA (opcional), revela resultados
+- **Grupos G1-G9** (group.html): Enviam respostas baseadas em contexto do QR code, com opção de gerar com IA
 
 ## Arquitetura Técnica
 
@@ -15,7 +14,7 @@ Sistema de votação em tempo real com três perfis:
 - **Backend**: Vercel Serverless Functions (Node.js 18+)
 - **Database**: Vercel KV (Redis)
 - **IA**: Groq API (LLaMA 3.1-70b-versatile)
-- **Sync**: Polling HTTP (1.5s) - sem WebSocket
+- **Sync**: Polling HTTP (500ms) - sem WebSocket
 
 ## Estrutura do Projeto
 
@@ -23,17 +22,13 @@ Sistema de votação em tempo real com três perfis:
 /
 ├── index.html           # Painel Host (TV/Desktop)
 ├── join.html           # Seleção de Grupo (G1-G9)
-├── join-jury.html      # Seleção de Júri (J1-J12)
 ├── group.html          # Interface Grupos (Mobile)
-├── vote.html           # Interface Júri (Mobile)
 ├── qr.html             # QR Codes dos Grupos
-├── qr-jury.html        # QR Codes do Júri
 ├── api/
 │   ├── state.js        # GET estado global
 │   ├── update.js       # POST atualizar estado
 │   ├── group.js        # POST resposta do grupo
-│   ├── vote.js         # POST voto do júri
-│   └── ia.js           # POST gerar resposta IA
+│   └── ia.js           # POST gerar resposta IA (com contexto)
 ├── lib/
 │   └── services.js     # Abstração KV/Groq (dev/prod)
 ├── dev-express.js      # Servidor dev com mocks
@@ -48,28 +43,51 @@ Chave: `room:${room}:state`
 
 ```json
 {
-  "round": 1-5,
-  "question": "Pergunta atual",
-  "ia": "Resposta gerada pela IA",
-  "responses": { "G1": "...", "G2": "..." },
-  "mapping": { "A": "IA", "B": "G3" },
-  "votes": { "J1": "A", "J2": "B" },
-  "reveal": "revealed"
+  "questions": ["Q1", "Q2", "Q3", "Q4"],
+  "currentQuestion": 0,
+  "responses": {
+    "q0": {"G1": "...", "G2": "...", "IA": "..."},
+    "q1": {"G3": "...", "IA": "..."},
+    "q2": {},
+    "q3": {}
+  },
+  "revealed": {
+    "q0": true,
+    "q1": false,
+    "q2": false,
+    "q3": false
+  }
 }
 ```
 
 ## Fluxo de Jogo
 
-### P1 a P5 (5 Rodadas)
+### Configuração + 4 Perguntas
 
-1. **Host**: Inicia jogo → Define pergunta
-2. **Grupos**: Enviam respostas via polling
-3. **Host**: Gera resposta da IA (Groq LLaMA)
-4. **Host**: Embaralha A/B (randomiza IA + 1 grupo humano)
-5. **Júri**: Vota em A ou B
-6. **Host**: Revela quem é IA vs Humano
-7. **Host**: Avança para próxima rodada
-8. Repete até P5 → Finaliza
+1. **Host**: Configura 4 perguntas ANTES de iniciar o jogo
+2. **Host**: Inicia jogo → vai para Pergunta 1 (currentQuestion=0)
+3. **Grupos**: Veem pergunta + contexto específico do QR code
+4. **Grupos**: Opção A: Escrever resposta manual
+5. **Grupos**: Opção B: Gerar resposta COM IA (usa contexto + pergunta)
+6. **Grupos**: Enviam resposta (manual ou editada após IA)
+7. **Host**: (Opcional) Gera resposta da IA como concorrente
+8. **Host**: Revela quais respostas são IA vs Humano (SEM votos)
+9. **Host**: Avança para Pergunta 2
+10. Repete até Pergunta 4 → Finaliza
+
+## Contextos dos Grupos (QR Code)
+
+Cada grupo tem um contexto específico que influencia suas respostas:
+
+- **G1**: Consultor de TI especializado em transformação digital para pequenas empresas
+- **G2**: Gerente de recursos humanos de uma startup em crescimento com 50 funcionários
+- **G3**: Diretor financeiro de uma empresa de médio porte do setor de varejo
+- **G4**: Profissional de marketing digital trabalhando em uma agência criativa
+- **G5**: Engenheiro de software líder técnico em uma empresa de tecnologia
+- **G6**: Empreendedor que acabou de lançar um negócio no setor de alimentos
+- **G7**: Coordenador de logística em uma empresa de e-commerce
+- **G8**: Professor universitário de administração e gestão de negócios
+- **G9**: Analista de dados trabalhando no setor de saúde
 
 ## Configuração para Deploy
 
@@ -103,26 +121,43 @@ vercel dev --listen 5000
 
 ### Acesso via QR Code (Recomendado)
 1. Host acessa: `https://seu-dominio.vercel.app/qr.html` (Gera QR codes dos grupos)
-2. Host acessa: `https://seu-dominio.vercel.app/qr-jury.html` (Gera QR codes do júri)
-3. Participantes escaneiam o QR code
-4. Selecionam seu número (G1-G9 ou J1-J12)
-5. São automaticamente redirecionados para suas interfaces
+2. Participantes escaneiam o QR code
+3. Selecionam seu número (G1-G9)
+4. São automaticamente redirecionados para suas interfaces
 
 ### Acesso Direto (Alternativo)
 - **Seleção Grupo**: `https://seu-dominio.vercel.app/join.html`
-- **Seleção Júri**: `https://seu-dominio.vercel.app/join-jury.html`
 - **Grupo direto**: `https://seu-dominio.vercel.app/group.html?group=G1` (G1 a G9)
-- **Júri direto**: `https://seu-dominio.vercel.app/vote.html?jury=J1` (J1 a J12)
 
 ## APIs Serverless
 
 | Endpoint | Método | Descrição |
 |----------|--------|-----------|
 | `/api/state` | GET | Retorna estado atual da sala |
-| `/api/update` | POST | Atualiza campos do estado |
-| `/api/group` | POST | Grupo envia resposta |
-| `/api/vote` | POST | Júri registra voto A/B |
-| `/api/ia` | POST | Gera resposta IA via Groq |
+| `/api/update` | POST | Atualiza campos do estado (deep merge para responses) |
+| `/api/group` | POST | Grupo envia resposta para pergunta atual |
+| `/api/ia` | POST | Gera resposta IA via Groq (com contexto opcional) |
+
+### Exemplo: Gerar IA com Contexto
+
+```javascript
+// Grupo gera resposta COM IA (não salva no estado global)
+POST /api/ia
+{
+  "room": "default",
+  "question": "Como melhorar produtividade?",
+  "context": "Você é um consultor de TI...",
+  "saveToState": false  // Retorna apenas a resposta
+}
+
+// Host gera IA como concorrente (salva no estado global)
+POST /api/ia
+{
+  "room": "default",
+  "question": "Como melhorar produtividade?",
+  "saveToState": true  // Salva em responses[qX].IA
+}
+```
 
 ## Prompt da IA (Groq)
 
@@ -132,9 +167,29 @@ Responda sem linguagem humana, sem expressões emocionais, sem coloquialismos.
 Use tópicos estratégicos e técnicos.
 ```
 
+**User Prompt (com contexto):**
+```
+{pergunta}
+
+Contexto: {contexto_do_grupo}
+```
+
 **Modelo:** `llama-3.1-70b-versatile`
 
 ## Alterações Recentes
+
+- 2025-11-11: **✅ REESTRUTURAÇÃO COMPLETA DO SISTEMA**
+  - **Mudança de 5 rodadas dinâmicas para 4 perguntas pré-definidas**
+  - **Remoção completa do sistema de votação**: sem júri, sem mapping, sem votos
+  - **Novo estado global**: questions[], currentQuestion, responses.qX, revealed.qX
+  - **Contexto do QR code**: cada grupo tem contexto específico
+  - **Botão "Gerar com IA"**: grupos podem gerar respostas assistidas por IA
+  - **APIs refatoradas**: state.js, update.js (deep merge), group.js, ia.js (contexto)
+  - **Frontend completo**: index.html (config + navegação), group.html (contexto + IA)
+  - **Defensive guards**: proteção contra estado malformado
+  - **Migração automática**: estado legado convertido automaticamente
+  - **Validado pelo arquiteto**: TODOS os componentes aprovados
+  - **Testado end-to-end**: fluxo completo funcionando perfeitamente
 
 - 2025-11-11: **✅ CORREÇÕES CRÍTICAS - Sistema totalmente otimizado**
   - **Travamento de digitação RESOLVIDO**: typing guards com lastServerResponse
@@ -146,6 +201,7 @@ Use tópicos estratégicos e técnicos.
     - Controles visíveis após reload mid-round
   - **Polling inteligente**: pausa apenas durante digitação real, não no focus
   - **Validado pelo arquiteto**: TODAS as correções aprovadas
+
 - 2025-11-10: **✅ Sistema completo e testado - PRONTO PARA PRODUÇÃO**
   - Correção de bugs no celular: scroll, overflow, margin, textarea
   - Melhorias na interface do host: design limpo, sections coloridas, spacing melhorado
@@ -153,28 +209,6 @@ Use tópicos estratégicos e técnicos.
   - Melhorias no júri: response cards, word-wrap, loading states
   - Otimização de sincronização: polling 500ms, retry automático, feedback visual
   - Validado pelo arquiteto: todos os requisitos atendidos
-- 2025-11-10: **Otimização de sincronização em tempo real**
-  - Polling reduzido de 1500ms para 500ms para resposta mais rápida
-  - Refresh imediato após envio de respostas, votos e geração de IA
-  - Retry automático com backoff exponencial (3 tentativas: 1s, 2s, 3s)
-  - Proteção contra overlapping de requisições (flag isFetching)
-  - Indicadores visuais de sincronização em tempo real
-  - Feedback visual completo (loading states, mensagens de sucesso)
-  - Compatibilidade cross-browser (Firefox, Chrome, Safari)
-- 2025-11-10: **Sistema completo de QR codes**
-  - Páginas join.html e join-jury.html para seleção de grupos/júri
-  - Páginas qr.html e qr-jury.html para geração de QR codes
-  - Validação robusta com localStorage e redirecionamento automático
-  - Suporte para G1-G9 (grupos) e J1-J12 (júri)
-- 2025-11-10: **Servidor dev Express com mocks**
-  - dev-express.js para desenvolvimento local sem Vercel CLI
-  - lib/services.js abstrai KV/Groq para funcionar em dev e prod
-  - Mocks simulados de Vercel KV e Groq API
-- 2025-11-10: Criação inicial do sistema completo
-  - Implementação de polling HTTP
-  - Integração Groq API para geração de respostas IA
-  - Sistema de embaralhamento randomizado A/B
-  - Controle de 5 rodadas sequenciais P1-P5
 
 ## Preferências do Usuário
 
