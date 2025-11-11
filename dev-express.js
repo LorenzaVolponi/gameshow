@@ -20,10 +20,16 @@ const mockGroq = {
     completions: {
       create: async ({ messages }) => {
         const question = messages.find(m => m.role === 'user')?.content || '';
+        const responses = [
+          `Na minha experiência, o ideal é focar em automação de processos repetitivos. Isso pode aumentar a produtividade em até 30% nos primeiros 6 meses. Recomendo começar mapeando as tarefas que consomem mais tempo e implementar ferramentas específicas para cada uma.`,
+          `Acredito que investir em capacitação da equipe traz retorno significativo. Estudos mostram que empresas que destinam pelo menos 5% do orçamento para treinamento veem um aumento de 20% no engajamento. É fundamental criar uma cultura de aprendizado contínuo.`,
+          `Uma abordagem prática seria implementar metodologias ágeis. Cerca de 70% das empresas que adotaram Scrum reportaram melhoria na entrega de projetos. O segredo está em adaptar o framework à realidade da sua equipe, sem seguir regras rígidas.`
+        ];
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
         return {
           choices: [{
             message: {
-              content: `[RESPOSTA SIMULADA DA IA]\n\n• Análise técnica do tema proposto\n• Abordagem estratégica sem emotividade\n• Tópicos objetivos e diretos\n• Resposta baseada em: "${question.substring(0, 50)}..."`
+              content: randomResponse
             }
           }]
         };

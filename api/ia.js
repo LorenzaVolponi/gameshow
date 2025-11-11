@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       messages: [
         {
           role: 'system',
-          content: 'Responda sem linguagem humana, sem expressões emocionais, sem coloquialismos. Use tópicos estratégicos e técnicos.'
+          content: 'Você é um profissional experiente respondendo de forma natural e conversacional. Use números específicos, percentuais e dados concretos quando relevante (ex: "aumentar em 25%", "nos últimos 3 anos", "cerca de 40% das empresas"). Inclua exemplos práticos e argumentos bem fundamentados baseados no contexto. Escreva em parágrafos fluidos como um humano escreveria, sem listas ou bullet points. Mantenha tom profissional mas acessível. Seja conciso: máximo 350 caracteres.'
         },
         {
           role: 'user',
@@ -39,8 +39,8 @@ export default async function handler(req, res) {
         }
       ],
       model: 'llama-3.1-70b-versatile',
-      temperature: 0.7,
-      max_tokens: 500
+      temperature: 0.8,
+      max_tokens: 400
     });
 
     const iaResponse = completion.choices[0]?.message?.content || '';
