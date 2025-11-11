@@ -136,6 +136,16 @@ Use tópicos estratégicos e técnicos.
 
 ## Alterações Recentes
 
+- 2025-11-11: **✅ CORREÇÕES CRÍTICAS - Sistema totalmente otimizado**
+  - **Travamento de digitação RESOLVIDO**: typing guards com lastServerResponse
+  - **Proteção de draft completa**: edições não enviadas preservadas durante polling
+  - **Mudança de rodada corrigida**: textarea sempre limpo em nova rodada
+  - **Interface do host reorganizada**: 
+    - IA e respostas humanas unificadas em "Respostas da Rodada"
+    - Contador de caracteres (0/500) com feedback visual vermelho > 90%
+    - Controles visíveis após reload mid-round
+  - **Polling inteligente**: pausa apenas durante digitação real, não no focus
+  - **Validado pelo arquiteto**: TODAS as correções aprovadas
 - 2025-11-10: **✅ Sistema completo e testado - PRONTO PARA PRODUÇÃO**
   - Correção de bugs no celular: scroll, overflow, margin, textarea
   - Melhorias na interface do host: design limpo, sections coloridas, spacing melhorado
