@@ -1,7 +1,7 @@
 import { getKV } from '../lib/services.js';
-import { parseJsonBody } from '../lib/http.js';
+import { parseJsonBody, createApiHandler } from '../lib/http.js';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -57,3 +57,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export default createApiHandler(handler);
